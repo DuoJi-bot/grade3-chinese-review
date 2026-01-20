@@ -198,13 +198,19 @@ class QuizBase {
                 </div>
                 <div class="complete-actions">
                     <button class="btn btn-outline" onclick="location.reload()">再练一次</button>
-                    <button class="btn btn-primary" onclick="window.history.length > 1 ? window.history.back() : window.location.href='../index.html'">返回首页</button>
+                    <button class="btn btn-primary" id="backToHomeBtn">返回首页</button>
                 </div>
             </div>
         `;
 
         // 添加完成页面样式
         this.addCompleteStyles();
+
+        // 绑定返回首页按钮事件
+        const backToHomeBtn = document.getElementById('backToHomeBtn');
+        if (backToHomeBtn) {
+            backToHomeBtn.addEventListener('click', () => this.goBack());
+        }
     }
 
     /**
@@ -349,8 +355,18 @@ class QuizBase {
      * 返回上一页
      */
     goBack() {
-        // 使用 history.back() 保持滚动位置
-        if (window.history.length > 1) {
+        // 检查 document.referrer 是否来自本站首页
+        const referrer = document.referrer;
+        const isFromHomePage = referrer && (
+            referrer.endsWith('/index.html') ||
+            referrer.endsWith('/') ||
+            referrer.includes('/index.html#') ||
+            referrer.match(/\/$/)
+        );
+
+        // 如果是从首页进入的,使用 history.back() 保持滚动位置
+        // 否则直接跳转到首页
+        if (isFromHomePage && window.history.length > 1) {
             window.history.back();
         } else {
             window.location.href = '../index.html';
