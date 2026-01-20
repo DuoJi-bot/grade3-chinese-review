@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>名言谚语填空 - 三年级语文复习</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .proverb-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .proverb-content {
+            font-size: 1.5rem;
+            line-height: 2;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .proverb-blank {
+            display: inline-block;
+            min-width: 60px;
+            padding: 0.25rem 0.5rem;
+            border-bottom: 3px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+            margin: 0 0.25rem;
+        }
+
+        .proverb-blank.filled {
+            background: var(--primary-color);
+            color: white;
+            border-radius: var(--radius-sm);
+            border-bottom: none;
+        }
+
+        .proverb-blank.correct {
+            background: var(--success-color);
+        }
+
+        .proverb-blank.wrong {
+            background: var(--error-color);
+        }
+
+        .proverb-meaning {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: var(--radius-lg);
+            color: var(--success-color);
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .proverb-meaning.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .option-chip {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-color);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-size: 1rem;
+        }
+
+        .option-chip:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .option-chip.selected {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .option-chip.used {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <header class="quiz-header">
+            <div class="quiz-back-btn" id="backBtn">
+                <span>←</span>
+                <span>返回</span>
+            </div>
+            <h1 class="quiz-title" id="quizTitle">名言谚语填空</h1>
+            <div class="quiz-progress" id="progressText">- / -</div>
+        </header>
+
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <div class="quiz-content" id="quizContent">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn btn-outline" id="prevBtn">← 上一题</button>
+            <button class="btn btn-primary" id="speakBtn">🔊 朗读</button>
+            <button class="btn btn-outline" id="nextBtn">下一题 →</button>
+        </div>
+    </div>
+
+    <script src="../js/utils/tts.js"></script>
+    <script src="../js/utils/storage.js"></script>
+    <script src="../js/quiz-types/QuizBase.js"></script>
+    <script>
+        class PoemFillQuiz extends QuizBase {
+            constructor(options) {
+                super(options);
+                this.answered = false;
+                this.currentProverb = null;
+            }
+
+            async loadData() {
+                const dataKey = this.getUrlParam('data') || 'treating_people';
+                const data = await this.fetchJson('../data/proverbs.json');
+
+                const section = data.sections.find(s => s.id === dataKey);
+                if (section) {
+                    document.getElementById('quizTitle').textContent = section.title;
+                    this.questions = section.items;
+                }
+            }
+
+            render() {
+                this.answered = false;
+                const proverb = this.questions[this.currentIndex];
+                this.currentProverb = proverb;
+
+                // 解析名言，找出需要填空的部分
+                // 格式：用中文圆括号（）括起来的部分是填空内容
+                let content = proverb.text;
+                let blanks = [];
+                let options = [];
+
+                // 使用正则表达式匹配所有（）内的内容
+                const blankRegex = /（([^）]+)）/g;
+                let match;
+                while ((match = blankRegex.exec(content)) !== null) {
+                    blanks.push(match[1]); // match[1]是括号内的内容
+                }
+
+                // 如果找到填空内容
+                if (blanks.length > 0) {
+                    // 将填空内容作为正确选项
+                    options = [...blanks];
+
+                    // 添加干扰选项
+                    const distractors = this.generateDistractors(blanks);
+                    options = this.shuffle([...options, ...distractors]);
+                }
+
+                // 替换所有括号内容为空白
+                let displayContent = content.replace(/（([^）]+)）/g, '<span class="proverb-blank" data-answer="$1">____</span>');
+
+                let html = `
+                    <div class="proverb-card">
+                        <div class="proverb-content">${displayContent}</div>
+                        
+                        <div class="options-grid">
+                            ${options.map(opt => `
+                                <div class="option-chip" data-value="${opt}">${opt}</div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="proverb-meaning" id="meaningArea">
+                            💡 ${proverb.meaning || ''}
+                        </div>
+                    </div>
+                `;
+
+                this.container.innerHTML = html;
+                this.bindEvents();
+                this.updateNavButtons();
+                this.updateProgress();
+            }
+
+            generateDistractors(correctAnswers) {
+                // 从其他名言的括号内容中获取干扰选项
+                const allBlanks = [];
+                this.questions.forEach(q => {
+                    const blankRegex = /（([^）]+)）/g;
+                    let match;
+                    while ((match = blankRegex.exec(q.text)) !== null) {
+                        allBlanks.push(match[1]);
+                    }
+                });
+
+                // 过滤掉正确答案，随机选择干扰项
+                const distractors = allBlanks.filter(b => !correctAnswers.includes(b));
+                return this.shuffle(distractors).slice(0, 3);
+            }
+
+            bindEvents() {
+                // 只绑定选项点击事件（每次render都需要重新绑定，因为选项DOM是新创建的）
+                const options = this.container.querySelectorAll('.option-chip');
+                options.forEach(opt => {
+                    opt.addEventListener('click', () => this.selectOption(opt));
+                });
+            }
+
+            // 导航按钮事件只绑定一次（在init之后调用）
+            bindNavEvents() {
+                if (this._navBound) return; // 防止重复绑定
+                this._navBound = true;
+
+                document.getElementById('prevBtn').addEventListener('click', () => this.prevQuestion());
+                document.getElementById('nextBtn').addEventListener('click', () => this.nextQuestion());
+                document.getElementById('backBtn').addEventListener('click', () => this.goBack());
+                document.getElementById('speakBtn').addEventListener('click', () => {
+                    this.speak(this.currentProverb.text);
+                });
+            }
+
+            updateNavButtons() {
+                document.getElementById('prevBtn').disabled = this.currentIndex === 0;
+            }
+
+            selectOption(optEl) {
+                if (optEl.classList.contains('used')) return;
+
+                const selected = optEl.dataset.value;
+                // 找到第一个未填的空白
+                const blanks = this.container.querySelectorAll('.proverb-blank:not(.filled)');
+                if (blanks.length === 0) return;
+
+                const blank = blanks[0];
+                const correct = blank.dataset.answer;
+
+                blank.textContent = selected;
+                blank.classList.add('filled');
+                optEl.classList.add('used');
+
+                if (selected === correct) {
+                    blank.classList.add('correct');
+                } else {
+                    blank.classList.add('wrong');
+                    // 显示正确答案
+                    setTimeout(() => {
+                        blank.textContent = correct;
+                        blank.classList.remove('wrong');
+                        blank.classList.add('correct');
+                    }, 500);
+                }
+
+                // 检查是否所有填空都已完成
+                const remainingBlanks = this.container.querySelectorAll('.proverb-blank:not(.filled)');
+                if (remainingBlanks.length === 0) {
+                    // 所有填空已完成
+                    this.answered = true;
+
+                    // 检查是否全部正确
+                    const allBlanks = this.container.querySelectorAll('.proverb-blank');
+                    const allCorrect = Array.from(allBlanks).every(b => b.classList.contains('correct') && !b.classList.contains('wrong-answer'));
+
+                    if (allCorrect) {
+                        this.showCorrectFeedback();
+                        // 注意：showCorrectFeedback() 已经增加了 correctCount，不需要再手动增加
+                    } else {
+                        this.showWrongFeedback();
+                    }
+
+                    // 显示释义
+                    document.getElementById('meaningArea').classList.add('show');
+
+                    // 朗读
+                    this.speak(this.currentProverb.text);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const quiz = new PoemFillQuiz({
+                moduleId: new URLSearchParams(window.location.search).get('id') || 'poem-fill'
+            });
+            quiz.init().then(() => {
+                quiz.bindNavEvents(); // 导航按钮只绑定一次
+            });
+        });
+    </script>
+</body>
+
+</html>

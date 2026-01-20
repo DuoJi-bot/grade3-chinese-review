@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>段落选择填空 - 三年级语文复习</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .lesson-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            max-height: 100px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            background: var(--bg-color);
+            border-radius: var(--radius-lg);
+        }
+
+        .lesson-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+        }
+
+        .lesson-btn:hover,
+        .lesson-btn.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .paragraph-area {
+            padding: 1.5rem;
+            background: var(--bg-color);
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            line-height: 2;
+            color: var(--text-primary);
+        }
+
+        .paragraph-blank {
+            display: inline-block;
+            min-width: 80px;
+            padding: 0.2rem 0.5rem;
+            border-bottom: 2px dashed var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .paragraph-blank:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .paragraph-blank.filled {
+            background: var(--primary-color);
+            color: white;
+            border-radius: var(--radius-sm);
+            border-bottom: none;
+        }
+
+        .paragraph-blank.correct {
+            background: var(--success-color);
+        }
+
+        .paragraph-blank.wrong {
+            background: var(--error-color);
+        }
+
+        .options-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            background: var(--card-bg);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+        }
+
+        .option-tag {
+            padding: 0.4rem 0.8rem;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-size: 0.875rem;
+        }
+
+        .option-tag:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+
+        .option-tag.selected {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+            color: white;
+        }
+
+        .option-tag.used {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .hint-text {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <header class="quiz-header">
+            <div class="quiz-back-btn" id="backBtn">
+                <span>←</span>
+                <span>返回</span>
+            </div>
+            <h1 class="quiz-title">课文知识点填空</h1>
+            <div class="quiz-progress" id="progressText">- / -</div>
+        </header>
+
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <div class="quiz-content" id="quizContent">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn btn-outline" id="resetBtn">🔄 重置</button>
+            <button class="btn btn-primary" id="checkBtn">✓ 检查答案</button>
+            <button class="btn btn-outline" id="nextBtn">下一课 →</button>
+        </div>
+    </div>
+
+    <script src="../js/utils/tts.js"></script>
+    <script src="../js/utils/storage.js"></script>
+    <script src="../js/quiz-types/QuizBase.js"></script>
+    <script>
+        class ParagraphFillQuiz extends QuizBase {
+            constructor(options) {
+                super(options);
+                this.lessons = [];
+                this.selectedOption = null;
+            }
+
+            async loadData() {
+                const data = await this.fetchJson('../data/course_knowledge.json');
+                this.lessons = data.lessons;
+                this.questions = this.lessons;
+            }
+
+            render() {
+                const lesson = this.lessons[this.currentIndex];
+                // 选择第一个段落
+                const paragraph = lesson.paragraphs[0];
+
+                // 解析段落，提取空格和答案
+                let text = paragraph.text;
+                const blanks = paragraph.blanks;
+                let options = [...blanks];
+
+                // 添加干扰选项
+                const distractors = this.generateDistractors(blanks);
+                options = this.shuffle([...options, ...distractors]);
+
+                // 替换括号内容为空格
+                let blankIndex = 0;
+                const displayText = text.replace(/（[^）]+）/g, (match) => {
+                    const answer = match.slice(1, -1);
+                    const html = `<span class="paragraph-blank" data-index="${blankIndex}" data-answer="${answer}">____</span>`;
+                    blankIndex++;
+                    return html;
+                });
+
+                let html = `
+                    <div class="lesson-selector">
+                        ${this.lessons.map((l, i) => `
+                            <button class="lesson-btn ${i === this.currentIndex ? 'active' : ''}" data-index="${i}">${l.title.slice(0, 15)}</button>
+                        `).join('')}
+                    </div>
+
+                    <div class="paragraph-area">
+                        ${displayText}
+                    </div>
+
+                    <div class="options-pool">
+                        ${options.map(opt => `
+                            <div class="option-tag" data-value="${opt}">${opt}</div>
+                        `).join('')}
+                    </div>
+
+                    <p class="hint-text">先点击选项，再点击空格填入</p>
+                `;
+
+                this.container.innerHTML = html;
+                this.bindEvents();
+                this.updateNavButtons();
+                this.updateProgress();
+            }
+
+            generateDistractors(blanks) {
+                // 从其他课文获取干扰选项
+                const allBlanks = [];
+                this.lessons.forEach(l => {
+                    l.paragraphs.forEach(p => {
+                        allBlanks.push(...p.blanks);
+                    });
+                });
+
+                const unique = [...new Set(allBlanks)].filter(b => !blanks.includes(b));
+                return this.shuffle(unique).slice(0, Math.min(3, blanks.length));
+            }
+
+            bindEvents() {
+                const options = this.container.querySelectorAll('.option-tag');
+                const blanks = this.container.querySelectorAll('.paragraph-blank');
+
+                options.forEach(opt => {
+                    opt.addEventListener('click', () => {
+                        if (opt.classList.contains('used')) return;
+                        options.forEach(o => o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                        this.selectedOption = opt;
+                    });
+                });
+
+                blanks.forEach(blank => {
+                    blank.addEventListener('click', () => {
+                        if (blank.classList.contains('filled')) return;
+                        if (!this.selectedOption) {
+                            this.showToast('请先选择一个答案');
+                            return;
+                        }
+
+                        const value = this.selectedOption.dataset.value;
+                        blank.textContent = value;
+                        blank.classList.add('filled');
+                        blank.dataset.selected = value;
+
+                        this.selectedOption.classList.add('used');
+                        this.selectedOption.classList.remove('selected');
+                        this.selectedOption = null;
+                    });
+                });
+
+                // 课文切换
+                const lessonBtns = this.container.querySelectorAll('.lesson-btn');
+                lessonBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.currentIndex = parseInt(btn.dataset.index);
+                        this.render();
+                    });
+                });
+
+                document.getElementById('backBtn').addEventListener('click', () => this.goBack());
+                document.getElementById('resetBtn').addEventListener('click', () => this.render());
+                document.getElementById('checkBtn').addEventListener('click', () => this.checkAnswers());
+                document.getElementById('nextBtn').addEventListener('click', () => {
+                    if (this.currentIndex < this.lessons.length - 1) {
+                        this.currentIndex++;
+                        this.render();
+                    } else {
+                        this.showComplete();
+                    }
+                });
+            }
+
+            updateNavButtons() {
+                // Nothing special needed
+            }
+
+            checkAnswers() {
+                const blanks = this.container.querySelectorAll('.paragraph-blank');
+                let correct = 0;
+
+                blanks.forEach(blank => {
+                    const selected = blank.dataset.selected;
+                    const answer = blank.dataset.answer;
+
+                    if (!selected) {
+                        blank.textContent = answer;
+                        blank.classList.add('wrong');
+                    } else if (selected === answer) {
+                        blank.classList.add('correct');
+                        correct++;
+                    } else {
+                        blank.classList.add('wrong');
+                        // 显示正确答案
+                        setTimeout(() => {
+                            blank.textContent = answer;
+                        }, 500);
+                    }
+                });
+
+                this.correctCount += correct;
+
+                if (correct === blanks.length) {
+                    this.showCorrectFeedback();
+                } else {
+                    this.showToast(`正确 ${correct}/${blanks.length}`);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const quiz = new ParagraphFillQuiz({
+                moduleId: 'paragraph-fill'
+            });
+            quiz.init();
+        });
+    </script>
+</body>
+
+</html>

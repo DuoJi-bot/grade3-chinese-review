@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>近反义词配对 - 三年级语文复习</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-color);
+            border-radius: var(--radius-lg);
+        }
+
+        .game-stat {
+            text-align: center;
+        }
+
+        .game-stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .game-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .unit-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .unit-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            background: var(--bg-color);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .unit-btn:hover,
+        .unit-btn.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            max-width: 350px;
+            margin: 0 auto;
+        }
+
+        .memory-card {
+            aspect-ratio: 1;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .memory-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+        }
+
+        .memory-card.flipped .memory-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .memory-card-front,
+        .memory-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .memory-card-front {
+            background: var(--gradient-primary);
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .memory-card-back {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            transform: rotateY(180deg);
+            color: var(--text-primary);
+            font-size: 1rem;
+            padding: 0.5rem;
+            text-align: center;
+            word-break: break-all;
+        }
+
+        .memory-card.matched .memory-card-back {
+            background: var(--success-light);
+            border-color: var(--success-color);
+            color: white;
+        }
+
+        .memory-card.checking .memory-card-back {
+            background: var(--primary-light);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .type-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .type-btn {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.875rem;
+            background: var(--bg-color);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .type-btn:hover,
+        .type-btn.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        @media (max-width: 480px) {
+            .card-grid {
+                gap: 0.5rem;
+            }
+
+            .memory-card-back {
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <header class="quiz-header">
+            <div class="quiz-back-btn" id="backBtn">
+                <span>←</span>
+                <span>返回</span>
+            </div>
+            <h1 class="quiz-title">近反义词配对</h1>
+            <div class="quiz-progress" id="progressText">翻牌游戏</div>
+        </header>
+
+        <div class="quiz-content" id="quizContent">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn btn-outline" id="resetBtn">🔄 重新开始</button>
+            <button class="btn btn-primary" id="nextUnitBtn">下一单元 →</button>
+        </div>
+    </div>
+
+    <script src="../js/utils/tts.js"></script>
+    <script src="../js/utils/storage.js"></script>
+    <script src="../js/quiz-types/QuizBase.js"></script>
+    <script>
+        class CardMatchQuiz extends QuizBase {
+            constructor(options) {
+                super(options);
+                this.units = [];
+                this.currentUnit = 0;
+                this.matchType = 'synonyms'; // 'synonyms' or 'antonyms'
+                this.cards = [];
+                this.flippedCards = [];
+                this.matchedPairs = 0;
+                this.moves = 0;
+                this.isChecking = false;
+            }
+
+            async loadData() {
+                const data = await this.fetchJson('../data/synonyms.json');
+                this.units = data.units;
+                this.questions = this.units;
+            }
+
+            render() {
+                const unit = this.units[this.currentUnit];
+                const allPairs = this.matchType === 'synonyms' ? unit.synonyms : unit.antonyms;
+
+                // 初始化已考查词语追踪
+                if (!this.usedPairIndices || this.usedPairIndices.length === 0) {
+                    this.usedPairIndices = [];
+                    this.allPairs = allPairs;
+                }
+
+                // 获取未考查的词语对
+                const remainingPairs = allPairs.filter((_, i) => !this.usedPairIndices.includes(i));
+
+                // 如果所有词都已考查，显示完成或进入下一单元
+                if (remainingPairs.length === 0) {
+                    this.showToast('🎉 本单元所有词语已考查完成！');
+                    this.usedPairIndices = []; // 重置
+                    return;
+                }
+
+                // 选择词语对：3x2矩阵需要3对（6张卡）
+                // 或者如果剩余不足3对，有多少算多少
+                const pairsNeeded = Math.min(3, remainingPairs.length);
+                const selectedIndices = [];
+                const shuffledRemaining = this.shuffle(remainingPairs.map((p, i) => {
+                    // 找到原始索引
+                    const originalIndex = allPairs.findIndex(op => op[0] === p[0] && op[1] === p[1]);
+                    return { pair: p, originalIndex };
+                }));
+
+                const selectedPairs = shuffledRemaining.slice(0, pairsNeeded);
+                selectedPairs.forEach(item => {
+                    this.usedPairIndices.push(item.originalIndex);
+                    selectedIndices.push(item.originalIndex);
+                });
+
+                // 生成卡片数据
+                this.cards = [];
+                selectedPairs.forEach((item, pairIndex) => {
+                    this.cards.push({ word: item.pair[0], pairId: pairIndex, matched: false });
+                    this.cards.push({ word: item.pair[1], pairId: pairIndex, matched: false });
+                });
+                this.cards = this.shuffle(this.cards);
+
+                this.currentPairsCount = selectedPairs.length;
+                this.flippedCards = [];
+                this.matchedPairs = 0;
+                this.moves = 0;
+                this.isChecking = false;
+
+                // 计算进度
+                const totalPairs = allPairs.length;
+                const usedPairs = this.usedPairIndices.length;
+                const progressText = `${usedPairs}/${totalPairs} 已考查`;
+
+                let html = `
+                    <div class="type-toggle">
+                        <button class="type-btn ${this.matchType === 'synonyms' ? 'active' : ''}" data-type="synonyms">近义词</button>
+                        <button class="type-btn ${this.matchType === 'antonyms' ? 'active' : ''}" data-type="antonyms">反义词</button>
+                    </div>
+
+                    <div class="unit-selector">
+                        ${this.units.map((u, i) => `
+                            <button class="unit-btn ${i === this.currentUnit ? 'active' : ''}" data-unit="${i}">${u.title}</button>
+                        `).join('')}
+                    </div>
+
+                    <div class="game-info">
+                        <div class="game-stat">
+                            <div class="game-stat-value" id="movesCount">0</div>
+                            <div class="game-stat-label">翻牌次数</div>
+                        </div>
+                        <div class="game-stat">
+                            <div class="game-stat-value" id="matchedCount">0/${this.currentPairsCount}</div>
+                            <div class="game-stat-label">配对成功</div>
+                        </div>
+                        <div class="game-stat">
+                            <div class="game-stat-value" id="progressCount">${progressText}</div>
+                            <div class="game-stat-label">总进度</div>
+                        </div>
+                    </div>
+
+                    <div class="card-grid">
+                        ${this.cards.map((card, i) => `
+                            <div class="memory-card" data-index="${i}" data-pair="${card.pairId}">
+                                <div class="memory-card-inner">
+                                    <div class="memory-card-front">?</div>
+                                    <div class="memory-card-back">${card.word}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                this.container.innerHTML = html;
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                // 卡片点击
+                const cards = this.container.querySelectorAll('.memory-card');
+                cards.forEach(card => {
+                    card.addEventListener('click', () => this.flipCard(card));
+                });
+
+                // 类型切换
+                const typeBtns = this.container.querySelectorAll('.type-btn');
+                typeBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.matchType = btn.dataset.type;
+                        this.usedPairIndices = []; // 重置已考查追踪
+                        this.render();
+                    });
+                });
+
+                // 单元切换
+                const unitBtns = this.container.querySelectorAll('.unit-btn');
+                unitBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.currentUnit = parseInt(btn.dataset.unit);
+                        this.usedPairIndices = []; // 重置已考查追踪
+                        this.render();
+                    });
+                });
+
+                // 按钮事件
+                document.getElementById('backBtn').addEventListener('click', () => this.goBack());
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.usedPairIndices = []; // 重置已考查追踪
+                    this.render();
+                });
+                document.getElementById('nextUnitBtn').addEventListener('click', () => {
+                    if (this.currentUnit < this.units.length - 1) {
+                        this.currentUnit++;
+                        this.usedPairIndices = []; // 重置已考查追踪
+                        this.render();
+                    } else {
+                        this.showComplete();
+                    }
+                });
+            }
+
+            flipCard(cardEl) {
+                if (this.isChecking) return;
+                if (cardEl.classList.contains('flipped')) return;
+                if (cardEl.classList.contains('matched')) return;
+                if (this.flippedCards.length >= 2) return;
+
+                cardEl.classList.add('flipped');
+                this.flippedCards.push(cardEl);
+
+                if (this.flippedCards.length === 2) {
+                    this.moves++;
+                    document.getElementById('movesCount').textContent = this.moves;
+                    this.checkMatch();
+                }
+            }
+
+            checkMatch() {
+                this.isChecking = true;
+                const [card1, card2] = this.flippedCards;
+                const pair1 = card1.dataset.pair;
+                const pair2 = card2.dataset.pair;
+
+                card1.classList.add('checking');
+                card2.classList.add('checking');
+
+                setTimeout(() => {
+                    if (pair1 === pair2) {
+                        // 匹配成功
+                        card1.classList.remove('checking');
+                        card2.classList.remove('checking');
+                        card1.classList.add('matched');
+                        card2.classList.add('matched');
+                        this.matchedPairs++;
+                        document.getElementById('matchedCount').textContent = `${this.matchedPairs}/${this.currentPairsCount}`;
+
+                        // 朗读配对的词语
+                        const word1 = card1.querySelector('.memory-card-back').textContent;
+                        const word2 = card2.querySelector('.memory-card-back').textContent;
+                        this.speak(`${word1}，${word2}`);
+
+                        if (this.matchedPairs === this.currentPairsCount) {
+                            this.showCorrectFeedback();
+                            this.correctCount += this.currentPairsCount;
+
+                            // 检查是否还有未考查的词
+                            const unit = this.units[this.currentUnit];
+                            const allPairs = this.matchType === 'synonyms' ? unit.synonyms : unit.antonyms;
+                            const remainingPairs = allPairs.filter((_, i) => !this.usedPairIndices.includes(i));
+
+                            if (remainingPairs.length > 0) {
+                                setTimeout(() => {
+                                    this.showToast('👍 继续下一组词语！');
+                                    this.render(); // 继续下一组
+                                }, 1000);
+                            } else {
+                                setTimeout(() => {
+                                    this.showToast('🎉 本单元全部词语已考查完成！');
+                                }, 500);
+                            }
+                        }
+                    } else {
+                        // 匹配失败
+                        card1.classList.remove('checking', 'flipped');
+                        card2.classList.remove('checking', 'flipped');
+                    }
+
+                    this.flippedCards = [];
+                    this.isChecking = false;
+                }, 1000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const quiz = new CardMatchQuiz({
+                moduleId: 'synonyms'
+            });
+            quiz.init();
+        });
+    </script>
+</body>
+
+</html>

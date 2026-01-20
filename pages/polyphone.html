@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多音字辨析 - 三年级语文复习</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .polyphone-card {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .main-character {
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-text {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .readings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .reading-option {
+            padding: 1.5rem;
+            background: var(--bg-color);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .reading-option:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .reading-option.selected {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .reading-option.correct {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .reading-option.wrong {
+            border-color: var(--error-color);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .reading-pinyin {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .reading-words {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .reading-word {
+            padding: 0.25rem 0.75rem;
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .word-sentence {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-color);
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            color: var(--text-primary);
+            line-height: 1.8;
+        }
+
+        .word-sentence .highlight {
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <header class="quiz-header">
+            <div class="quiz-back-btn" id="backBtn">
+                <span>←</span>
+                <span>返回</span>
+            </div>
+            <h1 class="quiz-title">多音字辨析</h1>
+            <div class="quiz-progress" id="progressText">- / -</div>
+        </header>
+
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <div class="quiz-content" id="quizContent">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn btn-outline" id="prevBtn">← 上一题</button>
+            <button class="btn btn-primary" id="speakBtn">🔊 朗读</button>
+            <button class="btn btn-outline" id="nextBtn">下一题 →</button>
+        </div>
+    </div>
+
+    <script src="../js/utils/tts.js"></script>
+    <script src="../js/utils/storage.js"></script>
+    <script src="../js/quiz-types/QuizBase.js"></script>
+    <script>
+        class PolyphoneQuiz extends QuizBase {
+            constructor(options) {
+                super(options);
+                this.answered = false;
+                this.currentQuestion = null;
+            }
+
+            async loadData() {
+                const data = await this.fetchJson('../data/polyphones.json');
+
+                // 为每个多音字生成题目（选择其中一个读音作为考察目标）
+                this.questions = [];
+                data.polyphones.forEach(poly => {
+                    poly.readings.forEach((reading, readingIndex) => {
+                        reading.words.forEach(word => {
+                            this.questions.push({
+                                character: poly.character,
+                                targetWord: word,
+                                targetPinyin: reading.pinyin,
+                                targetReadingIndex: readingIndex,
+                                allReadings: poly.readings
+                            });
+                        });
+                    });
+                });
+
+                // 限制题目数量
+                this.questions = this.shuffle(this.questions).slice(0, 20);
+            }
+
+            render() {
+                this.answered = false;
+                const q = this.questions[this.currentIndex];
+                this.currentQuestion = q;
+
+                // 创建例句
+                const sentence = this.generateSentence(q.targetWord, q.character);
+
+                let html = `
+                    <div class="polyphone-card">
+                        <div class="main-character">${q.character}</div>
+                        <div class="question-text">选择"<strong>${q.targetWord}</strong>"中"${q.character}"的正确读音</div>
+                        
+                        <div class="readings-grid">
+                            ${q.allReadings.map((reading, i) => `
+                                <div class="reading-option" data-index="${i}" data-pinyin="${reading.pinyin}">
+                                    <div class="reading-pinyin">${reading.pinyin}</div>
+                                    <div class="reading-words">
+                                        ${reading.words.map(w => `<span class="reading-word">${w}</span>`).join('')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="word-sentence" style="display: none;" id="sentenceArea">
+                            ${sentence}
+                        </div>
+                    </div>
+                `;
+
+                this.container.innerHTML = html;
+                this.bindEvents();
+                this.updateNavButtons();
+                this.updateProgress();
+            }
+
+            generateSentence(word, character) {
+                const sentences = {
+                    '假日': '每个<span class="highlight">假日</span>，我都会和家人一起去公园散步。',
+                    '放假': '明天开始<span class="highlight">放假</span>了，真开心！',
+                    '假如': '<span class="highlight">假如</span>我有一双翅膀，就能飞上天空。',
+                    '真假': '这幅画的<span class="highlight">真假</span>很难分辨。',
+                    '后背': '他的<span class="highlight">后背</span>被太阳晒得通红。',
+                    '背负': '他<span class="highlight">背负</span>着沉重的行囊前行。',
+                    '圆圈': '老师在黑板上画了一个<span class="highlight">圆圈</span>。',
+                    '羊圈': '牧羊人把羊赶进了<span class="highlight">羊圈</span>。',
+                    '挑战': '这次比赛是一个很大的<span class="highlight">挑战</span>。',
+                    '挑水': '奶奶每天都要<span class="highlight">挑水</span>浇菜园。',
+                };
+                return sentences[word] || `这个词语是"<span class="highlight">${word}</span>"。`;
+            }
+
+            bindEvents() {
+                const options = this.container.querySelectorAll('.reading-option');
+                options.forEach(opt => {
+                    opt.addEventListener('click', () => this.selectReading(opt));
+                });
+
+                document.getElementById('prevBtn').addEventListener('click', () => this.prevQuestion());
+                document.getElementById('nextBtn').addEventListener('click', () => this.nextQuestion());
+                document.getElementById('backBtn').addEventListener('click', () => this.goBack());
+                document.getElementById('speakBtn').addEventListener('click', () => {
+                    const q = this.currentQuestion;
+                    this.speak(`${q.character}，${q.targetPinyin}，${q.targetWord}`);
+                });
+            }
+
+            updateNavButtons() {
+                document.getElementById('prevBtn').disabled = this.currentIndex === 0;
+            }
+
+            selectReading(optEl) {
+                if (this.answered) return;
+                this.answered = true;
+
+                const q = this.currentQuestion;
+                const selectedIndex = parseInt(optEl.dataset.index);
+                const isCorrect = selectedIndex === q.targetReadingIndex;
+
+                optEl.classList.add('selected');
+
+                if (isCorrect) {
+                    optEl.classList.add('correct');
+                    this.showCorrectFeedback();
+                    this.correctCount++;
+
+                    // 朗读
+                    this.speak(q.targetWord);
+                } else {
+                    optEl.classList.add('wrong');
+                    this.showWrongFeedback();
+
+                    // 显示正确答案
+                    const correctOpt = this.container.querySelector(`.reading-option[data-index="${q.targetReadingIndex}"]`);
+                    correctOpt.classList.add('correct');
+                }
+
+                // 显示例句
+                document.getElementById('sentenceArea').style.display = 'block';
+
+                // 自动下一题
+                if (isCorrect) {
+                    setTimeout(() => {
+                        if (this.currentIndex < this.questions.length - 1) {
+                            this.nextQuestion();
+                        } else {
+                            this.showComplete();
+                        }
+                    }, 1500);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const quiz = new PolyphoneQuiz({
+                moduleId: 'polyphones'
+            });
+            quiz.init();
+        });
+    </script>
+</body>
+
+</html>

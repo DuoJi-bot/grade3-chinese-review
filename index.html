@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="三年级上学期语文期末复习交互式学习应用">
+    <title>三年级语文期末复习 - 交互式学习</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- 头部 -->
+        <header class="app-header">
+            <h1 class="app-title">📚 三年级语文期末复习</h1>
+            <p class="app-subtitle">交互式学习，让复习更有趣！</p>
+
+            <!-- 学习统计 -->
+            <div class="stats-bar" id="statsBar">
+                <div class="stat-item">
+                    <span class="stat-icon">📝</span>
+                    <span class="stat-value" id="totalQuestions">0</span>
+                    <span class="stat-label">已答题</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">✅</span>
+                    <span class="stat-value" id="accuracy">0%</span>
+                    <span class="stat-label">正确率</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">📅</span>
+                    <span class="stat-value" id="lastStudy">-</span>
+                    <span class="stat-label">上次学习</span>
+                </div>
+                <div class="stat-item reset-btn" id="resetBtn" title="重置学习记录并刷新缓存">
+                    <span class="stat-icon">🔄</span>
+                    <span class="stat-label">重置</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 练习分类 -->
+        <main>
+            <!-- 日积月累 -->
+            <section class="category-section">
+                <h2 class="section-title">🌟 日积月累</h2>
+                <div class="category-grid" id="dailyGrid"></div>
+            </section>
+
+            <!-- 课文知识 -->
+            <section class="category-section">
+                <h2 class="section-title">📖 课文知识</h2>
+                <div class="category-grid" id="lessonGrid"></div>
+            </section>
+
+            <!-- 词语训练 -->
+            <section class="category-section">
+                <h2 class="section-title">✨ 词语训练</h2>
+                <div class="category-grid" id="wordGrid"></div>
+            </section>
+
+            <!-- 古诗背诵 -->
+            <section class="category-section">
+                <h2 class="section-title">🏮 古诗背诵</h2>
+                <div class="category-grid" id="poemGrid"></div>
+            </section>
+
+            <!-- 短文练笔 -->
+            <section class="category-section">
+                <h2 class="section-title">📝 短文练笔</h2>
+                <div class="category-grid" id="writingGrid"></div>
+            </section>
+        </main>
+
+        <!-- 底部 -->
+        <footer class="app-footer">
+            <p>🎓 认真复习，期末考试加油！</p>
+        </footer>
+    </div>
+
+    <!-- 额外样式 -->
+    <style>
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .category-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .app-footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            .stats-bar {
+                gap: 1rem;
+                padding: 0.75rem;
+            }
+
+            .stat-icon {
+                font-size: 1.25rem;
+            }
+
+            .stat-value {
+                font-size: 1rem;
+            }
+        }
+
+        .reset-btn {
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            opacity: 0.7;
+        }
+
+        .reset-btn:hover {
+            transform: scale(1.1);
+            opacity: 1;
+        }
+
+        .reset-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+
+    <!-- 脚本 -->
+    <script src="js/utils/tts.js"></script>
+    <script src="js/utils/storage.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // 重置按钮功能
+        document.getElementById('resetBtn').addEventListener('click', function () {
+            if (confirm('确定要重置所有学习记录吗？\n\n这将清除：\n• 所有学习进度\n• 答题统计\n• 浏览器缓存\n\n此操作不可撤销！')) {
+                // 清除 localStorage
+                localStorage.clear();
+
+                // 清除 sessionStorage
+                sessionStorage.clear();
+
+                // 清除缓存并强制刷新
+                if ('caches' in window) {
+                    caches.keys().then(function (names) {
+                        for (let name of names) {
+                            caches.delete(name);
+                        }
+                    });
+                }
+
+                // 强制刷新页面（绕过缓存）
+                location.reload(true);
+            }
+        });
+    </script>
+</body>
+
+</html>

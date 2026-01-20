@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>词语范式朗读 - 三年级语文复习</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .pattern-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .pattern-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .pattern-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .pattern-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-color);
+            border-radius: var(--radius-lg);
+        }
+
+        .pattern-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .pattern-btn:hover,
+        .pattern-btn.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .words-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+
+        .word-card {
+            padding: 1rem;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .word-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .word-card.speaking {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+            animation: pulse 0.5s ease;
+        }
+
+        .word-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .word-pinyin {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .read-all-btn {
+            display: block;
+            margin: 1.5rem auto 0;
+            padding: 1rem 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <header class="quiz-header">
+            <div class="quiz-back-btn" id="backBtn">
+                <span>←</span>
+                <span>返回</span>
+            </div>
+            <h1 class="quiz-title">词语范式朗读</h1>
+            <div class="quiz-progress" id="progressText">点击词语朗读</div>
+        </header>
+
+        <div class="quiz-content" id="quizContent">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn btn-outline" id="prevBtn">← 上一组</button>
+            <button class="btn btn-primary" id="readAllBtn">🔊 朗读全部</button>
+            <button class="btn btn-outline" id="nextBtn">下一组 →</button>
+        </div>
+    </div>
+
+    <script src="../js/utils/tts.js"></script>
+    <script src="../js/utils/storage.js"></script>
+    <script src="../js/quiz-types/QuizBase.js"></script>
+    <script>
+        class WordReadQuiz extends QuizBase {
+            constructor(options) {
+                super(options);
+                this.patterns = [];
+                this.currentPatternIndex = 0;
+            }
+
+            async loadData() {
+                const data = await this.fetchJson('../data/word_patterns.json');
+                this.patterns = data.patterns;
+                this.questions = this.patterns;
+            }
+
+            render() {
+                const pattern = this.patterns[this.currentPatternIndex];
+
+                let html = `
+                    <div class="pattern-selector">
+                        ${this.patterns.map((p, i) => `
+                            <button class="pattern-btn ${i === this.currentPatternIndex ? 'active' : ''}" data-index="${i}">${p.name}</button>
+                        `).join('')}
+                    </div>
+
+                    <div class="pattern-header">
+                        <div class="pattern-name">${pattern.name}</div>
+                        <div class="pattern-desc">${pattern.description}</div>
+                    </div>
+
+                    <div class="words-grid">
+                        ${pattern.words.map((w, i) => `
+                            <div class="word-card" data-word="${w.word}" data-index="${i}">
+                                <div class="word-text">${w.word}</div>
+                                <div class="word-pinyin">${w.pinyin}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                this.container.innerHTML = html;
+                this.bindEvents();
+                this.updateNavButtons();
+            }
+
+            bindEvents() {
+                // 词语点击
+                const wordCards = this.container.querySelectorAll('.word-card');
+                wordCards.forEach(card => {
+                    card.addEventListener('click', () => {
+                        const word = card.dataset.word;
+                        this.speakWord(card, word);
+                    });
+                });
+
+                // 范式选择
+                const patternBtns = this.container.querySelectorAll('.pattern-btn');
+                patternBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.currentPatternIndex = parseInt(btn.dataset.index);
+                        this.currentIndex = this.currentPatternIndex;
+                        this.render();
+                    });
+                });
+
+                // 导航按钮
+                document.getElementById('prevBtn').addEventListener('click', () => {
+                    if (this.currentPatternIndex > 0) {
+                        this.currentPatternIndex--;
+                        this.render();
+                    }
+                });
+
+                document.getElementById('nextBtn').addEventListener('click', () => {
+                    if (this.currentPatternIndex < this.patterns.length - 1) {
+                        this.currentPatternIndex++;
+                        this.render();
+                    } else {
+                        this.correctCount = this.patterns.length;
+                        this.showComplete();
+                    }
+                });
+
+                document.getElementById('backBtn').addEventListener('click', () => this.goBack());
+
+                // 朗读全部
+                document.getElementById('readAllBtn').addEventListener('click', () => {
+                    this.readAllWords();
+                });
+            }
+
+            updateNavButtons() {
+                document.getElementById('prevBtn').disabled = this.currentPatternIndex === 0;
+            }
+
+            speakWord(cardEl, word) {
+                // 停止之前的朗读
+                this.stopSpeak();
+
+                // 移除其他高亮
+                this.container.querySelectorAll('.word-card').forEach(c => c.classList.remove('speaking'));
+
+                // 高亮当前
+                cardEl.classList.add('speaking');
+
+                // 朗读
+                this.speak(word, {
+                    onEnd: () => {
+                        cardEl.classList.remove('speaking');
+                    }
+                });
+            }
+
+            readAllWords() {
+                const pattern = this.patterns[this.currentPatternIndex];
+                const words = pattern.words.map(w => w.word);
+                const cards = this.container.querySelectorAll('.word-card');
+
+                let index = 0;
+
+                const readNext = () => {
+                    if (index >= words.length) return;
+
+                    // 高亮当前词语
+                    cards.forEach(c => c.classList.remove('speaking'));
+                    cards[index].classList.add('speaking');
+
+                    this.speak(words[index], {
+                        onEnd: () => {
+                            cards[index].classList.remove('speaking');
+                            index++;
+                            if (index < words.length) {
+                                setTimeout(readNext, 300);
+                            }
+                        }
+                    });
+                };
+
+                readNext();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const quiz = new WordReadQuiz({
+                moduleId: 'word-patterns'
+            });
+            quiz.init();
+        });
+    </script>
+</body>
+
+</html>

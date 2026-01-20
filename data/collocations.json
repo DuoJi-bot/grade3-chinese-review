@@ -1,0 +1,671 @@
+{
+    "meta": {
+        "title": "修饰词搭配数据",
+        "description": "三年级上学期语文复习 - 词句连线题型数据",
+        "quizType": "词句连线题型"
+    },
+    "units": [
+        {
+            "id": "unit1",
+            "title": "第一单元",
+            "collocations": [
+                {
+                    "modifier": "欢唱",
+                    "noun": "的小鸟"
+                },
+                {
+                    "modifier": "敬爱",
+                    "noun": "的老师"
+                },
+                {
+                    "modifier": "飘扬",
+                    "noun": "的国旗"
+                },
+                {
+                    "modifier": "古老",
+                    "noun": "的铜钟"
+                },
+                {
+                    "modifier": "粗壮",
+                    "noun": "的枝干"
+                },
+                {
+                    "modifier": "洁白",
+                    "noun": "的墙"
+                },
+                {
+                    "modifier": "扬",
+                    "noun": "起双臂"
+                },
+                {
+                    "modifier": "簌簌",
+                    "noun": "地响"
+                },
+                {
+                    "modifier": "湿润",
+                    "noun": "的东风"
+                },
+                {
+                    "modifier": "一群一群",
+                    "noun": "的花"
+                },
+                {
+                    "modifier": "走",
+                    "noun": "过荒野"
+                },
+                {
+                    "modifier": "吹",
+                    "noun": "着风笛"
+                },
+                {
+                    "modifier": "拍",
+                    "noun": "着大手"
+                },
+                {
+                    "modifier": "流利",
+                    "noun": "地背出"
+                },
+                {
+                    "modifier": "讲",
+                    "noun": "得很详细"
+                }
+            ]
+        },
+        {
+            "id": "unit2",
+            "title": "第二单元",
+            "collocations": [
+                {
+                    "modifier": "亮晶晶",
+                    "noun": "的水洼"
+                },
+                {
+                    "modifier": "湿漉漉",
+                    "noun": "的水泥道"
+                },
+                {
+                    "modifier": "棕红色",
+                    "noun": "的小雨靴"
+                },
+                {
+                    "modifier": "金色",
+                    "noun": "的小喇叭"
+                },
+                {
+                    "modifier": "金色",
+                    "noun": "的小巴掌"
+                },
+                {
+                    "modifier": "金黄",
+                    "noun": "的叶子"
+                },
+                {
+                    "modifier": "彩色",
+                    "noun": "的地毯"
+                },
+                {
+                    "modifier": "小心",
+                    "noun": "地走着"
+                },
+                {
+                    "modifier": "仔细",
+                    "noun": "地数着"
+                },
+                {
+                    "modifier": "黄黄",
+                    "noun": "的叶子"
+                },
+                {
+                    "modifier": "红红",
+                    "noun": "的枫叶"
+                },
+                {
+                    "modifier": "金色",
+                    "noun": "的海洋"
+                },
+                {
+                    "modifier": "美丽",
+                    "noun": "的菊花"
+                },
+                {
+                    "modifier": "好闻",
+                    "noun": "的气味"
+                },
+                {
+                    "modifier": "香甜",
+                    "noun": "的气味"
+                },
+                {
+                    "modifier": "道别",
+                    "noun": "的话音"
+                },
+                {
+                    "modifier": "告别",
+                    "noun": "的歌韵"
+                },
+                {
+                    "modifier": "暖暖",
+                    "noun": "的叮咛"
+                },
+                {
+                    "modifier": "丰收",
+                    "noun": "的歌吟"
+                },
+                {
+                    "modifier": "饱满",
+                    "noun": "的谷粒"
+                },
+                {
+                    "modifier": "丰收",
+                    "noun": "的歌"
+                },
+                {
+                    "modifier": "抖抖",
+                    "noun": "手臂"
+                },
+                {
+                    "modifier": "振动",
+                    "noun": "翅膀"
+                },
+                {
+                    "modifier": "掠过",
+                    "noun": "田野"
+                }
+            ],
+            "measureWords": [
+                {
+                    "measure": "一把",
+                    "noun": "小扇子"
+                },
+                {
+                    "measure": "一枚",
+                    "noun": "邮票"
+                },
+                {
+                    "measure": "一首",
+                    "noun": "歌"
+                },
+                {
+                    "measure": "一把",
+                    "noun": "钥匙"
+                }
+            ]
+        },
+        {
+            "id": "unit3",
+            "title": "第三单元",
+            "collocations": [
+                {
+                    "modifier": "讲",
+                    "noun": "故事"
+                },
+                {
+                    "modifier": "晒",
+                    "noun": "太阳"
+                },
+                {
+                    "modifier": "飞快",
+                    "noun": "地爬"
+                },
+                {
+                    "modifier": "偷偷",
+                    "noun": "地练"
+                },
+                {
+                    "modifier": "很大",
+                    "noun": "的缺陷"
+                },
+                {
+                    "modifier": "好听",
+                    "noun": "的叫声"
+                },
+                {
+                    "modifier": "安详",
+                    "noun": "地吃草"
+                },
+                {
+                    "modifier": "小小",
+                    "noun": "的声音"
+                },
+                {
+                    "modifier": "美丽",
+                    "noun": "的早晨"
+                },
+                {
+                    "modifier": "舒适",
+                    "noun": "的小洞"
+                },
+                {
+                    "modifier": "剧烈",
+                    "noun": "地颤动"
+                },
+                {
+                    "modifier": "古老",
+                    "noun": "的橄榄树"
+                },
+                {
+                    "modifier": "孤零零",
+                    "noun": "的小狗"
+                },
+                {
+                    "modifier": "吱吱呀呀",
+                    "noun": "地响"
+                },
+                {
+                    "modifier": "又大又漂亮",
+                    "noun": "的网"
+                },
+                {
+                    "modifier": "美味可口",
+                    "noun": "的午餐"
+                },
+                {
+                    "modifier": "哼哧哧",
+                    "noun": "地赶路"
+                },
+                {
+                    "modifier": "日夜不停",
+                    "noun": "地赶路"
+                },
+                {
+                    "modifier": "居高临下",
+                    "noun": "地打量"
+                },
+                {
+                    "modifier": "迷迷糊糊",
+                    "noun": "的思绪"
+                },
+                {
+                    "modifier": "百发百中",
+                    "noun": "的神枪手"
+                }
+            ]
+        },
+        {
+            "id": "unit4",
+            "title": "第四单元",
+            "collocations": [
+                {
+                    "modifier": "平平常常",
+                    "noun": "的普通人"
+                },
+                {
+                    "modifier": "可怜巴巴",
+                    "noun": "的样儿"
+                },
+                {
+                    "modifier": "最好",
+                    "noun": "的向日葵"
+                },
+                {
+                    "modifier": "集合",
+                    "noun": "队伍"
+                },
+                {
+                    "modifier": "搬运",
+                    "noun": "粮食"
+                },
+                {
+                    "modifier": "争先恐后",
+                    "noun": "赶到"
+                },
+                {
+                    "modifier": "淌",
+                    "noun": "口水"
+                },
+                {
+                    "modifier": "犯",
+                    "noun": "禁令"
+                },
+                {
+                    "modifier": "登上",
+                    "noun": "大石板"
+                }
+            ],
+            "measureWords": [
+                {
+                    "measure": "一块",
+                    "noun": "奶酪"
+                }
+            ]
+        },
+        {
+            "id": "unit5",
+            "title": "第五单元",
+            "collocations": [
+                {
+                    "modifier": "沙啦沙啦",
+                    "noun": "地响"
+                },
+                {
+                    "modifier": "彩色",
+                    "noun": "的小鸟"
+                },
+                {
+                    "modifier": "翠绿",
+                    "noun": "的羽毛"
+                },
+                {
+                    "modifier": "红色",
+                    "noun": "的长嘴"
+                },
+                {
+                    "modifier": "金色",
+                    "noun": "的草地"
+                },
+                {
+                    "modifier": "一本正经",
+                    "noun": "的样子"
+                },
+                {
+                    "modifier": "有趣",
+                    "noun": "的蒲公英"
+                }
+            ]
+        },
+        {
+            "id": "unit6",
+            "title": "第六单元",
+            "collocations": [
+                {
+                    "modifier": "茂密",
+                    "noun": "的树林"
+                },
+                {
+                    "modifier": "厚厚",
+                    "noun": "的鸟粪"
+                },
+                {
+                    "modifier": "宝贵",
+                    "noun": "的肥料"
+                },
+                {
+                    "modifier": "彩色",
+                    "noun": "的条纹"
+                },
+                {
+                    "modifier": "绽开",
+                    "noun": "的花朵"
+                },
+                {
+                    "modifier": "圆溜溜",
+                    "noun": "的眼睛"
+                },
+                {
+                    "modifier": "浩瀚",
+                    "noun": "的大海"
+                },
+                {
+                    "modifier": "银色",
+                    "noun": "的军舰"
+                },
+                {
+                    "modifier": "棕色",
+                    "noun": "的机帆船"
+                },
+                {
+                    "modifier": "挡住",
+                    "noun": "视线"
+                },
+                {
+                    "modifier": "绿色",
+                    "noun": "的海洋"
+                },
+                {
+                    "modifier": "嫩绿",
+                    "noun": "的叶子"
+                },
+                {
+                    "modifier": "鲜嫩",
+                    "noun": "的蘑菇"
+                },
+                {
+                    "modifier": "青色",
+                    "noun": "的虾和蟹"
+                },
+                {
+                    "modifier": "金黄色",
+                    "noun": "的海螺"
+                },
+                {
+                    "modifier": "抽出",
+                    "noun": "枝条"
+                },
+                {
+                    "modifier": "举世闻名",
+                    "noun": "的贸易港城市"
+                },
+                {
+                    "modifier": "繁荣",
+                    "noun": "的贸易活动"
+                },
+                {
+                    "modifier": "世界各地",
+                    "noun": "的商人"
+                },
+                {
+                    "modifier": "明亮",
+                    "noun": "的车灯"
+                },
+                {
+                    "modifier": "美不胜收",
+                    "noun": "的维多利亚港"
+                },
+                {
+                    "modifier": "五颜六色",
+                    "noun": "的焰火"
+                },
+                {
+                    "modifier": "璀璨夺目",
+                    "noun": "的明珠"
+                },
+                {
+                    "modifier": "巨大",
+                    "noun": "的宝库"
+                },
+                {
+                    "modifier": "五洲四海",
+                    "noun": "的游客"
+                },
+                {
+                    "modifier": "银光闪闪",
+                    "noun": "的鱼"
+                },
+                {
+                    "modifier": "淙淙",
+                    "noun": "地流着"
+                },
+                {
+                    "modifier": "闪烁",
+                    "noun": "的灯光"
+                },
+                {
+                    "modifier": "遮住",
+                    "noun": "天空"
+                }
+            ],
+            "measureWords": [
+                {
+                    "measure": "一座",
+                    "noun": "海滨小城"
+                },
+                {
+                    "measure": "一片",
+                    "noun": "沙滩"
+                }
+            ],
+            "adjectives": [
+                {
+                    "word": "风景",
+                    "adj": "优美"
+                },
+                {
+                    "word": "物产",
+                    "adj": "丰富"
+                }
+            ]
+        },
+        {
+            "id": "unit7",
+            "title": "第七单元",
+            "collocations": [
+                {
+                    "modifier": "美妙",
+                    "noun": "的声音"
+                },
+                {
+                    "modifier": "雄伟",
+                    "noun": "的乐曲"
+                },
+                {
+                    "modifier": "热闹",
+                    "noun": "的音乐会"
+                },
+                {
+                    "modifier": "广阔",
+                    "noun": "的大地"
+                },
+                {
+                    "modifier": "好玩",
+                    "noun": "的东西"
+                },
+                {
+                    "modifier": "轻快",
+                    "noun": "的山中小曲"
+                },
+                {
+                    "modifier": "高远",
+                    "noun": "的天空"
+                },
+                {
+                    "modifier": "无穷",
+                    "noun": "的奥秘"
+                },
+                {
+                    "modifier": "不同",
+                    "noun": "的趣味"
+                },
+                {
+                    "modifier": "沙沙",
+                    "noun": "的竹叶声"
+                },
+                {
+                    "modifier": "波澜壮阔",
+                    "noun": "的海洋大合唱"
+                },
+                {
+                    "modifier": "充满力量",
+                    "noun": "的声音"
+                },
+                {
+                    "modifier": "轻轻柔柔",
+                    "noun": "的呢喃细语"
+                }
+            ]
+        },
+        {
+            "id": "unit8",
+            "title": "第八单元",
+            "collocations": [
+                {
+                    "modifier": "镇定",
+                    "noun": "地做手术"
+                },
+                {
+                    "modifier": "消灭",
+                    "noun": "敌人"
+                },
+                {
+                    "modifier": "含着",
+                    "noun": "泪花"
+                },
+                {
+                    "modifier": "敏捷",
+                    "noun": "地取出"
+                },
+                {
+                    "modifier": "不断",
+                    "noun": "地吼叫"
+                },
+                {
+                    "modifier": "匆匆",
+                    "noun": "地赶来"
+                },
+                {
+                    "modifier": "迅速",
+                    "noun": "地转移"
+                },
+                {
+                    "modifier": "袭击",
+                    "noun": "日寇"
+                },
+                {
+                    "modifier": "艰苦",
+                    "noun": "的生活"
+                },
+                {
+                    "modifier": "鼓鼓",
+                    "noun": "的挂包"
+                },
+                {
+                    "modifier": "卓著",
+                    "noun": "的成就"
+                },
+                {
+                    "modifier": "偏僻",
+                    "noun": "的山村"
+                },
+                {
+                    "modifier": "熟练",
+                    "noun": "的技巧"
+                },
+                {
+                    "modifier": "兴奋",
+                    "noun": "地说"
+                },
+                {
+                    "modifier": "著名",
+                    "noun": "的生物学家"
+                },
+                {
+                    "modifier": "不声不响",
+                    "noun": "地刻苦钻研"
+                },
+                {
+                    "modifier": "气焰嚣张",
+                    "noun": "的日军"
+                }
+            ],
+            "measureWords": [
+                {
+                    "measure": "一座",
+                    "noun": "小庙"
+                },
+                {
+                    "measure": "一块",
+                    "noun": "弹片"
+                },
+                {
+                    "measure": "一名",
+                    "noun": "战士"
+                },
+                {
+                    "measure": "几发",
+                    "noun": "炮弹"
+                },
+                {
+                    "measure": "一个",
+                    "noun": "碗"
+                },
+                {
+                    "measure": "一碗",
+                    "noun": "饭"
+                },
+                {
+                    "measure": "一口",
+                    "noun": "锅"
+                }
+            ]
+        }
+    ]
+}

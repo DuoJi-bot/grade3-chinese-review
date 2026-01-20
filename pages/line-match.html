@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修饰词搭配 - 三年级语文复习</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .unit-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 0.5rem;
+            background: var(--bg-color);
+            border-radius: var(--radius-lg);
+        }
+
+        .unit-tab {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .unit-tab:hover,
+        .unit-tab.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .match-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+            padding: 1.5rem;
+        }
+
+        .match-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .column-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .match-item {
+            padding: 0.75rem 1rem;
+            background: var(--bg-color);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .match-item:hover {
+            border-color: var(--primary-color);
+            transform: translateX(3px);
+        }
+
+        .match-item.selected {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .match-item.matched {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.1);
+            pointer-events: none;
+        }
+
+        .match-item.wrong {
+            border-color: var(--error-color);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .game-stat {
+            text-align: center;
+        }
+
+        .game-stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .game-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <header class="quiz-header">
+            <div class="quiz-back-btn" id="backBtn">
+                <span>←</span>
+                <span>返回</span>
+            </div>
+            <h1 class="quiz-title">修饰词搭配</h1>
+            <div class="quiz-progress" id="progressText">连线练习</div>
+        </header>
+
+        <div class="quiz-content" id="quizContent">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn btn-outline" id="resetBtn">🔄 重置</button>
+            <button class="btn btn-primary" id="nextUnitBtn">下一单元 →</button>
+        </div>
+    </div>
+
+    <script src="../js/utils/tts.js"></script>
+    <script src="../js/utils/storage.js"></script>
+    <script src="../js/quiz-types/QuizBase.js"></script>
+    <script>
+        class LineMatchQuiz extends QuizBase {
+            constructor(options) {
+                super(options);
+                this.units = [];
+                this.currentUnitIndex = 0;
+                this.selectedLeft = null;
+                this.matchedCount = 0;
+                this.totalPairs = 0;
+            }
+
+            async loadData() {
+                const data = await this.fetchJson('../data/collocations.json');
+                this.units = data.units;
+                this.questions = this.units;
+            }
+
+            render() {
+                const unit = this.units[this.currentUnitIndex];
+                const collocations = unit.collocations || [];
+
+                // 选择8对搭配
+                const selected = this.shuffle(collocations).slice(0, 8);
+                this.totalPairs = selected.length;
+                this.matchedCount = 0;
+
+                // 分离左右两列
+                const leftItems = selected.map((c, i) => ({ text: c.modifier, pairId: i }));
+                const rightItems = this.shuffle(selected.map((c, i) => ({ text: c.noun, pairId: i })));
+
+                let html = `
+                    <div class="unit-tabs">
+                        ${this.units.map((u, i) => `
+                            <button class="unit-tab ${i === this.currentUnitIndex ? 'active' : ''}" data-index="${i}">${u.title}</button>
+                        `).join('')}
+                    </div>
+
+                    <div class="game-info">
+                        <div class="game-stat">
+                            <div class="game-stat-value" id="matchedCount">0/${this.totalPairs}</div>
+                            <div class="game-stat-label">已配对</div>
+                        </div>
+                    </div>
+
+                    <div class="match-container">
+                        <div class="match-column" id="leftColumn">
+                            <div class="column-title">修饰词</div>
+                            ${leftItems.map(item => `
+                                <div class="match-item left-item" data-pair="${item.pairId}" data-text="${item.text}">${item.text}</div>
+                            `).join('')}
+                        </div>
+                        <div class="match-column" id="rightColumn">
+                            <div class="column-title">名词</div>
+                            ${rightItems.map(item => `
+                                <div class="match-item right-item" data-pair="${item.pairId}" data-text="${item.text}">${item.text}</div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+                this.container.innerHTML = html;
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                const leftItems = this.container.querySelectorAll('.left-item');
+                const rightItems = this.container.querySelectorAll('.right-item');
+
+                leftItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        if (item.classList.contains('matched')) return;
+
+                        leftItems.forEach(i => i.classList.remove('selected'));
+                        item.classList.add('selected');
+                        this.selectedLeft = item;
+                    });
+                });
+
+                rightItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        if (item.classList.contains('matched')) return;
+                        if (!this.selectedLeft) {
+                            this.showToast('请先点击左边的修饰词');
+                            return;
+                        }
+
+                        const leftPair = this.selectedLeft.dataset.pair;
+                        const rightPair = item.dataset.pair;
+
+                        if (leftPair === rightPair) {
+                            // 匹配成功
+                            this.selectedLeft.classList.remove('selected');
+                            this.selectedLeft.classList.add('matched');
+                            item.classList.add('matched');
+                            this.matchedCount++;
+                            document.getElementById('matchedCount').textContent = `${this.matchedCount}/${this.totalPairs}`;
+
+                            // 朗读
+                            const phrase = this.selectedLeft.dataset.text + item.dataset.text;
+                            this.speak(phrase);
+
+                            this.selectedLeft = null;
+
+                            if (this.matchedCount === this.totalPairs) {
+                                this.showCorrectFeedback();
+                                this.correctCount = this.totalPairs;
+                                this.showToast('🎉 全部配对成功！');
+                            }
+                        } else {
+                            // 匹配失败
+                            this.selectedLeft.classList.add('wrong');
+                            item.classList.add('wrong');
+
+                            setTimeout(() => {
+                                this.selectedLeft.classList.remove('selected', 'wrong');
+                                item.classList.remove('wrong');
+                                this.selectedLeft = null;
+                            }, 500);
+                        }
+                    });
+                });
+
+                // 单元切换
+                const unitTabs = this.container.querySelectorAll('.unit-tab');
+                unitTabs.forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        this.currentUnitIndex = parseInt(tab.dataset.index);
+                        this.render();
+                    });
+                });
+
+                document.getElementById('backBtn').addEventListener('click', () => this.goBack());
+                document.getElementById('resetBtn').addEventListener('click', () => this.render());
+                document.getElementById('nextUnitBtn').addEventListener('click', () => {
+                    if (this.currentUnitIndex < this.units.length - 1) {
+                        this.currentUnitIndex++;
+                        this.render();
+                    } else {
+                        this.showComplete();
+                    }
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const quiz = new LineMatchQuiz({
+                moduleId: 'line-match'
+            });
+            quiz.init();
+        });
+    </script>
+</body>
+
+</html>
