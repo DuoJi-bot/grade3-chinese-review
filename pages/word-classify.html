@@ -26,7 +26,7 @@
             background: var(--card-bg);
             border: 2px solid var(--border-color);
             border-radius: var(--radius-full);
-            cursor: grab;
+            cursor: pointer;
             transition: all var(--transition-fast);
             user-select: none;
         }
@@ -37,9 +37,11 @@
             box-shadow: var(--shadow-md);
         }
 
-        .word-item.dragging {
-            opacity: 0.5;
+        .word-item.selected {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.2);
             transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
         }
 
         .word-item.placed {
@@ -68,10 +70,16 @@
             min-height: 180px;
             text-align: center;
             transition: all var(--transition-fast);
-            border: 2px dashed transparent;
+            border: 2px dashed var(--border-color);
+            cursor: pointer;
         }
 
-        .category-zone.drag-over {
+        .category-zone:hover {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .category-zone.active {
             border-color: var(--primary-color);
             background: rgba(99, 102, 241, 0.1);
         }
@@ -184,10 +192,10 @@
                 // 打乱词语顺序
                 const shuffledWords = this.shuffle(this.allWords);
 
-                // 词语池
+                // 词语池（移除draggable属性）
                 let poolHtml = '<div class="word-pool" id="wordPool">';
                 shuffledWords.forEach((item, index) => {
-                    poolHtml += `<div class="word-item" draggable="true" data-word="${item.word}" data-category="${item.category}" data-index="${index}">${item.word}</div>`;
+                    poolHtml += `<div class="word-item" data-word="${item.word}" data-category="${item.category}" data-index="${index}">${item.word}</div>`;
                 });
                 poolHtml += '</div>';
 
@@ -205,32 +213,22 @@
                 });
                 zonesHtml += '</div>';
 
-                const hintHtml = '<p class="hint-text">将词语拖拽到对应的季节分类中</p>';
+                const hintHtml = '<p class="hint-text">选择词语然后点击对应的季节分类</p>';
 
                 this.container.innerHTML = poolHtml + zonesHtml + hintHtml;
 
-                // 绑定拖拽事件
-                this.bindDragEvents();
+                // 绑定点击事件
+                this.bindClickEvents();
                 this.bindButtonEvents();
                 this.updateProgress();
             }
 
-            bindDragEvents() {
+            bindClickEvents() {
                 const wordItems = this.container.querySelectorAll('.word-item');
                 const zones = this.container.querySelectorAll('.category-zone');
 
+                // 词语点击选择
                 wordItems.forEach(item => {
-                    item.addEventListener('dragstart', (e) => {
-                        e.dataTransfer.setData('text/plain', item.dataset.word);
-                        e.dataTransfer.setData('category', item.dataset.category);
-                        item.classList.add('dragging');
-                    });
-
-                    item.addEventListener('dragend', () => {
-                        item.classList.remove('dragging');
-                    });
-
-                    // 支持点击选择
                     item.addEventListener('click', () => {
                         if (item.classList.contains('placed')) return;
 
@@ -240,33 +238,18 @@
 
                         if (!wasSelected) {
                             item.classList.add('selected');
+                            // 朗读词语
+                            this.speak(item.dataset.word);
                         }
                     });
                 });
 
+                // 分类区域点击放置
                 zones.forEach(zone => {
-                    zone.addEventListener('dragover', (e) => {
-                        e.preventDefault();
-                        zone.classList.add('drag-over');
-                    });
+                    zone.addEventListener('click', (e) => {
+                        // 防止点击已放置的词语触发
+                        if (e.target.classList.contains('placed-word')) return;
 
-                    zone.addEventListener('dragleave', () => {
-                        zone.classList.remove('drag-over');
-                    });
-
-                    zone.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        zone.classList.remove('drag-over');
-
-                        const word = e.dataTransfer.getData('text/plain');
-                        const correctCategory = e.dataTransfer.getData('category');
-                        const targetCategory = zone.dataset.category;
-
-                        this.placeWord(word, targetCategory, correctCategory);
-                    });
-
-                    // 支持点击放置
-                    zone.addEventListener('click', () => {
                         const selectedItem = this.container.querySelector('.word-item.selected');
                         if (selectedItem) {
                             const word = selectedItem.dataset.word;
@@ -275,6 +258,10 @@
 
                             this.placeWord(word, targetCategory, correctCategory);
                             selectedItem.classList.remove('selected');
+
+                            // 短暂高亮分类区域
+                            zone.classList.add('active');
+                            setTimeout(() => zone.classList.remove('active'), 300);
                         }
                     });
                 });

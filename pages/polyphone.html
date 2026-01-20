@@ -177,6 +177,19 @@
                 this.questions = this.shuffle(this.questions);
             }
 
+            // 覆盖初始化方法，确保导航按钮事件只绑定一次
+            async init() {
+                try {
+                    await this.loadData();
+                    this.render();
+                    this.bindNavigationEvents(); // 只在初始化时绑定一次导航按钮事件
+                    this.updateProgress();
+                } catch (error) {
+                    console.error('初始化失败:', error);
+                    this.showError('加载数据失败，请刷新页面重试');
+                }
+            }
+
             render() {
                 this.answered = false;
                 const q = this.questions[this.currentIndex];
@@ -234,7 +247,10 @@
                 options.forEach(opt => {
                     opt.addEventListener('click', () => this.selectReading(opt));
                 });
+            }
 
+            // 绑定固定导航按钮的事件（只调用一次）
+            bindNavigationEvents() {
                 document.getElementById('prevBtn').addEventListener('click', () => this.prevQuestion());
                 document.getElementById('nextBtn').addEventListener('click', () => this.nextQuestion());
                 document.getElementById('backBtn').addEventListener('click', () => this.goBack());
