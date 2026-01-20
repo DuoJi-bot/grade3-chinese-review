@@ -75,6 +75,16 @@
             flex-wrap: wrap;
             gap: 0.5rem;
             justify-content: center;
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            transition: all var(--transition-normal);
+        }
+
+        .reading-words.show {
+            opacity: 1;
+            height: auto;
+            margin-top: 0.5rem;
         }
 
         .reading-word {
@@ -145,24 +155,26 @@
             async loadData() {
                 const data = await this.fetchJson('../data/polyphones.json');
 
-                // 为每个多音字生成题目（选择其中一个读音作为考察目标）
+                // 为每个多音字生成一道题（随机选择其中一个读音）
                 this.questions = [];
                 data.polyphones.forEach(poly => {
-                    poly.readings.forEach((reading, readingIndex) => {
-                        reading.words.forEach(word => {
-                            this.questions.push({
-                                character: poly.character,
-                                targetWord: word,
-                                targetPinyin: reading.pinyin,
-                                targetReadingIndex: readingIndex,
-                                allReadings: poly.readings
-                            });
-                        });
+                    // 随机选择一个读音
+                    const readingIndex = Math.floor(Math.random() * poly.readings.length);
+                    const reading = poly.readings[readingIndex];
+                    // 使用该读音下的第一个词作为考察目标
+                    const word = reading.words[0];
+
+                    this.questions.push({
+                        character: poly.character,
+                        targetWord: word,
+                        targetPinyin: reading.pinyin,
+                        targetReadingIndex: readingIndex,
+                        allReadings: poly.readings
                     });
                 });
 
-                // 限制题目数量
-                this.questions = this.shuffle(this.questions).slice(0, 20);
+                // 打乱题目顺序
+                this.questions = this.shuffle(this.questions);
             }
 
             render() {
@@ -265,6 +277,15 @@
                 // 显示例句
                 document.getElementById('sentenceArea').style.display = 'block';
 
+                // 显示所有选项的组词
+                const allOptions = this.container.querySelectorAll('.reading-option');
+                allOptions.forEach(opt => {
+                    const wordsEl = opt.querySelector('.reading-words');
+                    if (wordsEl) {
+                        wordsEl.classList.add('show');
+                    }
+                });
+
                 // 自动下一题
                 if (isCorrect) {
                     setTimeout(() => {
@@ -273,7 +294,7 @@
                         } else {
                             this.showComplete();
                         }
-                    }, 1500);
+                    }, 2500);
                 }
             }
         }

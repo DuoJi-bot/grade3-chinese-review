@@ -120,6 +120,14 @@
             font-size: 0.8rem;
             margin-top: 1rem;
         }
+
+        .paragraph-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .paragraph-item:last-child {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 
@@ -131,12 +139,8 @@
                 <span>返回</span>
             </div>
             <h1 class="quiz-title">课文知识点填空</h1>
-            <div class="quiz-progress" id="progressText">- / -</div>
+            <div class="quiz-progress" id="progressText"></div>
         </header>
-
-        <div class="progress-bar">
-            <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
-        </div>
 
         <div class="quiz-content" id="quizContent">
             <div class="loading">
@@ -159,7 +163,8 @@
             constructor(options) {
                 super(options);
                 this.lessons = [];
-                this.selectedOption = null;
+                this.selectedOptions = {}; // 记录每个空格选中的选项
+                this.currentLessonIndex = 0; // 当前课
             }
 
             async loadData() {
@@ -169,41 +174,55 @@
             }
 
             render() {
-                const lesson = this.lessons[this.currentIndex];
-                // 选择第一个段落
-                const paragraph = lesson.paragraphs[0];
+                const lesson = this.lessons[this.currentLessonIndex];
+                this.selectedOptions = {}; // 重置选项
 
-                // 解析段落，提取空格和答案
-                let text = paragraph.text;
-                const blanks = paragraph.blanks;
-                let options = [...blanks];
-
-                // 添加干扰选项
-                const distractors = this.generateDistractors(blanks);
-                options = this.shuffle([...options, ...distractors]);
-
-                // 替换括号内容为空格
-                let blankIndex = 0;
-                const displayText = text.replace(/（[^）]+）/g, (match) => {
-                    const answer = match.slice(1, -1);
-                    const html = `<span class="paragraph-blank" data-index="${blankIndex}" data-answer="${answer}">____</span>`;
-                    blankIndex++;
-                    return html;
+                // 收集该课所有段落的blanks，用于生成选项池
+                const allBlanks = [];
+                lesson.paragraphs.forEach(p => {
+                    allBlanks.push(...p.blanks);
                 });
+
+                // 生成选项池（包含所有答案和一些干扰项）
+                const distractors = this.generateDistractors(allBlanks);
+                const allOptions = this.shuffle([...allBlanks, ...distractors]);
+
+                // 生成所有段落的HTML
+                const paragraphsHtml = lesson.paragraphs.map((paragraph, pIndex) => {
+                    let text = paragraph.text;
+                    let blankIndex = 0;
+
+                    // 替换括号内容为空格
+                    const displayText = text.replace(/（[^）]+）/g, (match) => {
+                        const answer = match.slice(1, -1);
+                        const uniqueId = `p${pIndex}_b${blankIndex}`;
+                        const html = `<span class="paragraph-blank" data-id="${uniqueId}" data-answer="${answer}">____</span>`;
+                        blankIndex++;
+                        return html;
+                    });
+
+                    return `
+                        <div class="paragraph-item">
+                            <div class="paragraph-area">
+                                ${displayText}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
 
                 let html = `
                     <div class="lesson-selector">
                         ${this.lessons.map((l, i) => `
-                            <button class="lesson-btn ${i === this.currentIndex ? 'active' : ''}" data-index="${i}">${l.title.slice(0, 15)}</button>
+                            <button class="lesson-btn ${i === this.currentLessonIndex ? 'active' : ''}" data-index="${i}">${l.title.slice(0, 15)}</button>
                         `).join('')}
                     </div>
 
-                    <div class="paragraph-area">
-                        ${displayText}
+                    <div class="paragraphs-container">
+                        ${paragraphsHtml}
                     </div>
 
                     <div class="options-pool">
-                        ${options.map(opt => `
+                        ${allOptions.map(opt => `
                             <div class="option-tag" data-value="${opt}">${opt}</div>
                         `).join('')}
                     </div>
@@ -213,7 +232,6 @@
 
                 this.container.innerHTML = html;
                 this.bindEvents();
-                this.updateNavButtons();
                 this.updateProgress();
             }
 
@@ -266,17 +284,19 @@
                 const lessonBtns = this.container.querySelectorAll('.lesson-btn');
                 lessonBtns.forEach(btn => {
                     btn.addEventListener('click', () => {
-                        this.currentIndex = parseInt(btn.dataset.index);
+                        this.currentLessonIndex = parseInt(btn.dataset.index);
                         this.render();
                     });
                 });
 
                 document.getElementById('backBtn').addEventListener('click', () => this.goBack());
-                document.getElementById('resetBtn').addEventListener('click', () => this.render());
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.render();
+                });
                 document.getElementById('checkBtn').addEventListener('click', () => this.checkAnswers());
                 document.getElementById('nextBtn').addEventListener('click', () => {
-                    if (this.currentIndex < this.lessons.length - 1) {
-                        this.currentIndex++;
+                    if (this.currentLessonIndex < this.lessons.length - 1) {
+                        this.currentLessonIndex++;
                         this.render();
                     } else {
                         this.showComplete();
@@ -284,8 +304,9 @@
                 });
             }
 
-            updateNavButtons() {
-                // Nothing special needed
+            updateProgress() {
+                const lesson = this.lessons[this.currentLessonIndex];
+                document.getElementById('progressText').textContent = lesson.title;
             }
 
             checkAnswers() {
@@ -315,6 +336,7 @@
 
                 if (correct === blanks.length) {
                     this.showCorrectFeedback();
+                    this.showToast('🎉 全部正确！');
                 } else {
                     this.showToast(`正确 ${correct}/${blanks.length}`);
                 }

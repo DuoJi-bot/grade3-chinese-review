@@ -33,11 +33,11 @@
         }
 
         .unit-selector {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 0.5rem;
-            justify-content: center;
-            margin-bottom: 1.5rem;
+            max-width: 600px;
+            margin: 0 auto 1.5rem;
         }
 
         .unit-btn {
@@ -48,6 +48,7 @@
             border-radius: var(--radius-full);
             cursor: pointer;
             transition: all var(--transition-fast);
+            white-space: nowrap;
         }
 
         .unit-btn:hover,
@@ -150,6 +151,12 @@
             color: white;
         }
 
+        @media (max-width: 768px) {
+            .unit-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         @media (max-width: 480px) {
             .card-grid {
                 gap: 0.5rem;
@@ -157,6 +164,11 @@
 
             .memory-card-back {
                 font-size: 0.875rem;
+            }
+
+            .unit-btn {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.8rem;
             }
         }
     </style>
@@ -200,31 +212,93 @@
                 this.matchedPairs = 0;
                 this.moves = 0;
                 this.isChecking = false;
+                this.progressKey = 'card-match-progress'; // localStorage key
             }
 
             async loadData() {
                 const data = await this.fetchJson('../data/synonyms.json');
-                this.units = data.units;
+                // 确保单元按照正确的顺序排列（unit1, unit2, ..., unit8）
+                this.units = data.units.sort((a, b) => {
+                    const numA = parseInt(a.id.replace('unit', ''));
+                    const numB = parseInt(b.id.replace('unit', ''));
+                    return numA - numB;
+                });
                 this.questions = this.units;
+                // 加载保存的进度
+                this.loadProgress();
+            }
+
+            // 加载进度
+            loadProgress() {
+                const saved = localStorage.getItem(this.progressKey);
+                if (saved) {
+                    this.progressData = JSON.parse(saved);
+                } else {
+                    this.progressData = {};
+                }
+            }
+
+            // 保存进度
+            saveProgress() {
+                localStorage.setItem(this.progressKey, JSON.stringify(this.progressData));
+            }
+
+            // 获取当前单元+类型的进度key
+            getCurrentProgressKey() {
+                return `unit${this.currentUnit}_${this.matchType}`;
+            }
+
+            // 获取当前已考查的词对索引列表
+            getUsedPairIndices() {
+                const key = this.getCurrentProgressKey();
+                return this.progressData[key] || [];
+            }
+
+            // 设置当前已考查的词对索引列表
+            setUsedPairIndices(indices) {
+                const key = this.getCurrentProgressKey();
+                this.progressData[key] = indices;
+                this.saveProgress();
             }
 
             render() {
                 const unit = this.units[this.currentUnit];
                 const allPairs = this.matchType === 'synonyms' ? unit.synonyms : unit.antonyms;
 
-                // 初始化已考查词语追踪
-                if (!this.usedPairIndices || this.usedPairIndices.length === 0) {
-                    this.usedPairIndices = [];
-                    this.allPairs = allPairs;
-                }
+                // 从localStorage加载已考查词语
+                this.usedPairIndices = this.getUsedPairIndices();
 
                 // 获取未考查的词语对
                 const remainingPairs = allPairs.filter((_, i) => !this.usedPairIndices.includes(i));
 
-                // 如果所有词都已考查，显示完成或进入下一单元
+                // 如果所有词都已考查，允许重测
                 if (remainingPairs.length === 0) {
-                    this.showToast('🎉 本单元所有词语已考查完成！');
-                    this.usedPairIndices = []; // 重置
+                    // 显示完成状态，但允许继续翻牌重测
+                    // 从头开始选择词对
+                    const pairsNeeded = Math.min(3, allPairs.length);
+                    const shuffledAll = this.shuffle(allPairs.map((p, i) => ({ pair: p, originalIndex: i })));
+                    const selectedPairs = shuffledAll.slice(0, pairsNeeded);
+
+                    // 生成卡片数据
+                    this.cards = [];
+                    selectedPairs.forEach((item, pairIndex) => {
+                        this.cards.push({ word: item.pair[0], pairId: pairIndex, matched: false });
+                        this.cards.push({ word: item.pair[1], pairId: pairIndex, matched: false });
+                    });
+                    this.cards = this.shuffle(this.cards);
+
+                    this.currentPairsCount = selectedPairs.length;
+                    this.flippedCards = [];
+                    this.matchedPairs = 0;
+                    this.moves = 0;
+                    this.isChecking = false;
+                    this.isReviewMode = true; // 标记为重测模式
+
+                    // 计算进度（已100%完成）
+                    const totalPairs = allPairs.length;
+                    const progressText = `${totalPairs}/${totalPairs} 已考查`;
+
+                    this.renderGameUI(progressText, totalPairs, true);
                     return;
                 }
 
@@ -239,8 +313,16 @@
                 }));
 
                 const selectedPairs = shuffledRemaining.slice(0, pairsNeeded);
+
+                // 先记录当前已考查的数量（用于显示进度）
+                const totalPairs = allPairs.length;
+                const usedPairsBeforeThisRound = this.usedPairIndices.length;
+                const progressText = `${usedPairsBeforeThisRound}/${totalPairs} 已考查`;
+
+                // 然后再将本轮选中的词对加入已考查列表（暂存，完成后再保存）
+                this.pendingPairIndices = [];
                 selectedPairs.forEach(item => {
-                    this.usedPairIndices.push(item.originalIndex);
+                    this.pendingPairIndices.push(item.originalIndex);
                     selectedIndices.push(item.originalIndex);
                 });
 
@@ -257,11 +339,13 @@
                 this.matchedPairs = 0;
                 this.moves = 0;
                 this.isChecking = false;
+                this.isReviewMode = false;
 
-                // 计算进度
-                const totalPairs = allPairs.length;
-                const usedPairs = this.usedPairIndices.length;
-                const progressText = `${usedPairs}/${totalPairs} 已考查`;
+                this.renderGameUI(progressText, totalPairs, false);
+            }
+
+            renderGameUI(progressText, totalPairs, isCompleted) {
+                const progressStyle = isCompleted ? 'color: var(--success-color); font-weight: 700;' : '';
 
                 let html = `
                     <div class="type-toggle">
@@ -285,7 +369,7 @@
                             <div class="game-stat-label">配对成功</div>
                         </div>
                         <div class="game-stat">
-                            <div class="game-stat-value" id="progressCount">${progressText}</div>
+                            <div class="game-stat-value" id="progressCount" style="${progressStyle}">${progressText}</div>
                             <div class="game-stat-label">总进度</div>
                         </div>
                     </div>
@@ -318,8 +402,7 @@
                 typeBtns.forEach(btn => {
                     btn.addEventListener('click', () => {
                         this.matchType = btn.dataset.type;
-                        this.usedPairIndices = []; // 重置已考查追踪
-                        this.render();
+                        this.render(); // 自动加载对应的进度
                     });
                 });
 
@@ -328,22 +411,21 @@
                 unitBtns.forEach(btn => {
                     btn.addEventListener('click', () => {
                         this.currentUnit = parseInt(btn.dataset.unit);
-                        this.usedPairIndices = []; // 重置已考查追踪
-                        this.render();
+                        this.render(); // 自动加载对应的进度
                     });
                 });
 
                 // 按钮事件
                 document.getElementById('backBtn').addEventListener('click', () => this.goBack());
                 document.getElementById('resetBtn').addEventListener('click', () => {
-                    this.usedPairIndices = []; // 重置已考查追踪
+                    // 只重置当前单元+类型的进度
+                    this.setUsedPairIndices([]);
                     this.render();
                 });
                 document.getElementById('nextUnitBtn').addEventListener('click', () => {
                     if (this.currentUnit < this.units.length - 1) {
                         this.currentUnit++;
-                        this.usedPairIndices = []; // 重置已考查追踪
-                        this.render();
+                        this.render(); // 自动加载对应的进度
                     } else {
                         this.showComplete();
                     }
@@ -394,10 +476,32 @@
                             this.showCorrectFeedback();
                             this.correctCount += this.currentPairsCount;
 
-                            // 检查是否还有未考查的词
+                            // 如果不是重测模式，保存进度
+                            if (!this.isReviewMode) {
+                                // 将本轮的词对加入已考查列表
+                                const currentUsed = this.getUsedPairIndices();
+                                const updatedUsed = [...currentUsed, ...this.pendingPairIndices];
+                                this.setUsedPairIndices(updatedUsed);
+                            }
+
+                            // 更新进度显示（本轮已完成）
                             const unit = this.units[this.currentUnit];
                             const allPairs = this.matchType === 'synonyms' ? unit.synonyms : unit.antonyms;
-                            const remainingPairs = allPairs.filter((_, i) => !this.usedPairIndices.includes(i));
+                            const totalPairs = allPairs.length;
+                            const currentUsedPairs = this.getUsedPairIndices().length;
+                            const isCompleted = currentUsedPairs >= totalPairs;
+
+                            const progressCount = document.getElementById('progressCount');
+                            progressCount.textContent = `${currentUsedPairs}/${totalPairs} 已考查`;
+
+                            // 如果完成100%，显示绿色
+                            if (isCompleted) {
+                                progressCount.style.color = 'var(--success-color)';
+                                progressCount.style.fontWeight = '700';
+                            }
+
+                            // 检查是否还有未考查的词
+                            const remainingPairs = allPairs.filter((_, i) => !this.getUsedPairIndices().includes(i));
 
                             if (remainingPairs.length > 0) {
                                 setTimeout(() => {
@@ -406,7 +510,9 @@
                                 }, 1000);
                             } else {
                                 setTimeout(() => {
-                                    this.showToast('🎉 本单元全部词语已考查完成！');
+                                    this.showToast('🎉 本单元全部词语已考查完成！可继续重测或切换单元');
+                                    // 完成后继续渲染，进入重测模式
+                                    setTimeout(() => this.render(), 1500);
                                 }, 500);
                             }
                         }

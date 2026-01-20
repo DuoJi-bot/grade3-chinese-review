@@ -147,6 +147,8 @@
                 this.selectedLeft = null;
                 this.matchedCount = 0;
                 this.totalPairs = 0;
+                this.batchIndex = 0; // 当前批次索引
+                this.usedIndices = []; // 已考查的词条索引
             }
 
             async loadData() {
@@ -159,14 +161,48 @@
                 const unit = this.units[this.currentUnitIndex];
                 const collocations = unit.collocations || [];
 
-                // 选择8对搭配
-                const selected = this.shuffle(collocations).slice(0, 8);
+                // 获取未考查的词条
+                const remainingIndices = collocations
+                    .map((_, i) => i)
+                    .filter(i => !this.usedIndices.includes(i));
+
+                // 如果所有词条都已考查，重置
+                if (remainingIndices.length === 0) {
+                    this.usedIndices = [];
+                    this.batchIndex = 0;
+                    this.showToast('🎉 本单元全部词条已考查完成！');
+                    // 重新开始
+                    const remainingIndices = collocations.map((_, i) => i);
+                    const batchSize = Math.min(8, remainingIndices.length);
+                    const selectedIndices = this.shuffle(remainingIndices).slice(0, batchSize);
+                    this.usedIndices = [...selectedIndices];
+                    const selected = selectedIndices.map(i => collocations[i]);
+                    this.renderBatch(selected, collocations.length);
+                    return;
+                }
+
+                // 选择最多8对搭配
+                const batchSize = Math.min(8, remainingIndices.length);
+                const selectedIndices = this.shuffle(remainingIndices).slice(0, batchSize);
+
+                // 记录本批次选中的索引（完成后再加入usedIndices）
+                this.pendingIndices = selectedIndices;
+
+                const selected = selectedIndices.map(i => collocations[i]);
+                this.renderBatch(selected, collocations.length);
+            }
+
+            renderBatch(selected, totalCount) {
                 this.totalPairs = selected.length;
                 this.matchedCount = 0;
 
                 // 分离左右两列
                 const leftItems = selected.map((c, i) => ({ text: c.modifier, pairId: i }));
                 const rightItems = this.shuffle(selected.map((c, i) => ({ text: c.noun, pairId: i })));
+
+                // 计算总进度
+                const completedCount = this.usedIndices.length;
+                const progressText = `${completedCount}/${totalCount}`;
 
                 let html = `
                     <div class="unit-tabs">
@@ -177,8 +213,12 @@
 
                     <div class="game-info">
                         <div class="game-stat">
-                            <div class="game-stat-value" id="matchedCount">0/${this.totalPairs}</div>
-                            <div class="game-stat-label">已配对</div>
+                            <div class="game-stat-value" id="batchCount">0/${this.totalPairs}</div>
+                            <div class="game-stat-label">本批配对</div>
+                        </div>
+                        <div class="game-stat">
+                            <div class="game-stat-value" id="totalProgress">${progressText}</div>
+                            <div class="game-stat-label">总进度</div>
                         </div>
                     </div>
 
@@ -233,7 +273,7 @@
                             this.selectedLeft.classList.add('matched');
                             item.classList.add('matched');
                             this.matchedCount++;
-                            document.getElementById('matchedCount').textContent = `${this.matchedCount}/${this.totalPairs}`;
+                            document.getElementById('batchCount').textContent = `${this.matchedCount}/${this.totalPairs}`;
 
                             // 朗读
                             const phrase = this.selectedLeft.dataset.text + item.dataset.text;
@@ -243,8 +283,32 @@
 
                             if (this.matchedCount === this.totalPairs) {
                                 this.showCorrectFeedback();
-                                this.correctCount = this.totalPairs;
-                                this.showToast('🎉 全部配对成功！');
+                                this.correctCount += this.totalPairs;
+
+                                // 将本批次的词条加入已考查列表
+                                this.usedIndices = [...this.usedIndices, ...this.pendingIndices];
+
+                                // 获取当前单元数据
+                                const unit = this.units[this.currentUnitIndex];
+                                const collocations = unit.collocations || [];
+
+                                // 更新总进度显示
+                                const completedCount = this.usedIndices.length;
+                                document.getElementById('totalProgress').textContent = `${completedCount}/${collocations.length}`;
+
+                                // 检查是否还有未考查的词条
+                                const remainingIndices = collocations
+                                    .map((_, i) => i)
+                                    .filter(i => !this.usedIndices.includes(i));
+
+                                if (remainingIndices.length > 0) {
+                                    this.showToast(`👍 本批完成！继续下一批...`);
+                                    setTimeout(() => {
+                                        this.render(); // 自动进入下一批
+                                    }, 1000);
+                                } else {
+                                    this.showToast('🎉 本单元全部词条已考查完成！');
+                                }
                             }
                         } else {
                             // 匹配失败
@@ -265,15 +329,23 @@
                 unitTabs.forEach(tab => {
                     tab.addEventListener('click', () => {
                         this.currentUnitIndex = parseInt(tab.dataset.index);
+                        this.usedIndices = []; // 切换单元时重置进度
+                        this.batchIndex = 0;
                         this.render();
                     });
                 });
 
                 document.getElementById('backBtn').addEventListener('click', () => this.goBack());
-                document.getElementById('resetBtn').addEventListener('click', () => this.render());
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.usedIndices = []; // 重置进度
+                    this.batchIndex = 0;
+                    this.render();
+                });
                 document.getElementById('nextUnitBtn').addEventListener('click', () => {
                     if (this.currentUnitIndex < this.units.length - 1) {
                         this.currentUnitIndex++;
+                        this.usedIndices = []; // 切换单元时重置进度
+                        this.batchIndex = 0;
                         this.render();
                     } else {
                         this.showComplete();
