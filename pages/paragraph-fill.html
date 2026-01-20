@@ -424,6 +424,29 @@
                 this.updateProgress();
             }
 
+            // 获取按课号排序的课文索引列表
+            getSortedLessonIndices() {
+                const processedPrefixes = new Set();
+                const lessonData = [];
+
+                this.lessons.forEach((l, i) => {
+                    if (l.id && l.id.includes('_')) {
+                        const prefix = l.id.split('_')[0];
+                        if (!processedPrefixes.has(prefix)) {
+                            processedPrefixes.add(prefix);
+                            const lessonNum = parseInt(prefix.replace('lesson', ''));
+                            lessonData.push({ index: i, sortKey: lessonNum });
+                        }
+                    } else {
+                        const lessonNum = parseInt(l.id.replace('lesson', ''));
+                        lessonData.push({ index: i, sortKey: lessonNum });
+                    }
+                });
+
+                lessonData.sort((a, b) => a.sortKey - b.sortKey);
+                return lessonData.map(item => item.index);
+            }
+
             getLessonButtons() {
                 const buttons = [];
                 const processedPrefixes = new Set(); // 记录已处理的课号前缀
@@ -598,8 +621,14 @@
                 });
                 document.getElementById('checkBtn').addEventListener('click', () => this.checkAnswers());
                 document.getElementById('nextBtn').addEventListener('click', () => {
-                    if (this.currentLessonIndex < this.lessons.length - 1) {
-                        this.currentLessonIndex++;
+                    // 获取按课号排序的课文索引列表
+                    const sortedIndices = this.getSortedLessonIndices();
+                    // 找到当前课文在排序列表中的位置
+                    const currentPosition = sortedIndices.indexOf(this.currentLessonIndex);
+
+                    if (currentPosition < sortedIndices.length - 1) {
+                        // 跳转到下一个课号的课文
+                        this.currentLessonIndex = sortedIndices[currentPosition + 1];
                         this.render();
                     } else {
                         this.showComplete();
