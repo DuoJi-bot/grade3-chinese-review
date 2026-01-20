@@ -18,6 +18,31 @@
             margin-bottom: 1rem;
             font-size: 1rem;
             line-height: 1.8;
+            position: relative;
+        }
+
+        .reset-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--warning-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all var(--transition-fast);
+            opacity: 0.8;
+        }
+
+        .reset-btn:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .reset-btn:active {
+            transform: scale(0.95);
         }
 
         .sentence-blank {
@@ -184,7 +209,12 @@
                         return `<span class="sentence-blank" data-index="${idx}" data-blank-id="${blankId}" data-answer="${match.slice(1, -1)}"></span>`;
                     });
 
-                    return `<div class="sentence-item">${sentence}</div>`;
+                    return `
+                        <div class="sentence-item" data-item-index="${idx}">
+                            ${sentence}
+                            <button class="reset-btn" data-reset-index="${idx}">🔄 重置</button>
+                        </div>
+                    `;
                 }).join('')}
                     </div>
                     
@@ -205,6 +235,7 @@
                 // 只绑定选项和空格点击事件（每次render需要重新绑定）
                 const options = this.container.querySelectorAll('.option-tag');
                 const blanks = this.container.querySelectorAll('.sentence-blank');
+                const resetBtns = this.container.querySelectorAll('.reset-btn');
 
                 let selectedOption = null;
 
@@ -237,6 +268,41 @@
                         selectedOption = null;
                     });
                 });
+
+                // 绑定重置按钮事件
+                resetBtns.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const itemIndex = btn.dataset.resetIndex;
+                        this.resetItem(itemIndex);
+                    });
+                });
+            }
+
+            resetItem(itemIndex) {
+                // 找到该题目对应的所有空格
+                const blanks = this.container.querySelectorAll(`.sentence-blank[data-index="${itemIndex}"]`);
+
+                blanks.forEach(blank => {
+                    if (blank.classList.contains('filled')) {
+                        const filledAnswer = blank.dataset.selected;
+
+                        // 恢复选项池中对应的选项
+                        const options = this.container.querySelectorAll('.option-tag');
+                        options.forEach(opt => {
+                            if (opt.dataset.answer === filledAnswer && opt.dataset.originalIndex === itemIndex) {
+                                opt.classList.remove('used');
+                            }
+                        });
+
+                        // 清空空格
+                        blank.textContent = '';
+                        blank.classList.remove('filled', 'correct', 'wrong');
+                        delete blank.dataset.selected;
+                    }
+                });
+
+                this.showToast('已重置该题');
             }
 
             // 导航按钮事件只绑定一次
