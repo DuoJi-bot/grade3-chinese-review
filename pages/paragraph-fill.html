@@ -623,10 +623,24 @@
                 document.getElementById('nextBtn').addEventListener('click', () => {
                     // 获取按课号排序的课文索引列表
                     const sortedIndices = this.getSortedLessonIndices();
-                    // 找到当前课文在排序列表中的位置
-                    const currentPosition = sortedIndices.indexOf(this.currentLessonIndex);
 
-                    if (currentPosition < sortedIndices.length - 1) {
+                    // 找到当前课文在排序列表中的位置
+                    let currentPosition = sortedIndices.indexOf(this.currentLessonIndex);
+
+                    // 如果当前是多部分课文(如古诗三首的第2或第3首)，需要找到对应的课号位置
+                    if (currentPosition === -1) {
+                        const currentLesson = this.lessons[this.currentLessonIndex];
+                        if (currentLesson.id && currentLesson.id.includes('_')) {
+                            const prefix = currentLesson.id.split('_')[0];
+                            // 找到该课号对应的第一部分在排序列表中的位置
+                            currentPosition = sortedIndices.findIndex(idx => {
+                                const lesson = this.lessons[idx];
+                                return lesson.id && lesson.id.startsWith(prefix);
+                            });
+                        }
+                    }
+
+                    if (currentPosition !== -1 && currentPosition < sortedIndices.length - 1) {
                         // 跳转到下一个课号的课文
                         this.currentLessonIndex = sortedIndices[currentPosition + 1];
                         this.render();
