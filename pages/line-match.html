@@ -153,8 +153,26 @@
 
             async loadData() {
                 const data = await this.fetchJson('../data/collocations.json');
-                this.units = data.units;
+                // 确保单元按顺序排列（unit1, unit2, ..., unit8）
+                this.units = data.units.sort((a, b) => {
+                    const numA = parseInt(a.id.replace('unit', ''));
+                    const numB = parseInt(b.id.replace('unit', ''));
+                    return numA - numB;
+                });
                 this.questions = this.units;
+            }
+
+            // 覆盖初始化方法，确保导航按钮事件只绑定一次
+            async init() {
+                try {
+                    await this.loadData();
+                    this.render();
+                    this.bindNavigationEvents(); // 只在初始化时绑定一次导航按钮事件
+                    this.updateProgress();
+                } catch (error) {
+                    console.error('初始化失败:', error);
+                    this.showError('加载数据失败，请刷新页面重试');
+                }
             }
 
             render() {
@@ -334,7 +352,10 @@
                         this.render();
                     });
                 });
+            }
 
+            // 绑定固定导航按钮的事件（只调用一次）
+            bindNavigationEvents() {
                 document.getElementById('backBtn').addEventListener('click', () => this.goBack());
                 document.getElementById('resetBtn').addEventListener('click', () => {
                     this.usedIndices = []; // 重置进度
@@ -348,6 +369,7 @@
                         this.batchIndex = 0;
                         this.render();
                     } else {
+                        // 最后一个单元，显示完成页面
                         this.showComplete();
                     }
                 });

@@ -267,6 +267,19 @@
                 this.questions = this.lessons;
             }
 
+            // 覆盖初始化方法，确保导航按钮事件只绑定一次
+            async init() {
+                try {
+                    await this.loadData();
+                    this.render();
+                    this.bindNavigationEvents(); // 只在初始化时绑定一次导航按钮事件
+                    this.updateProgress();
+                } catch (error) {
+                    console.error('初始化失败:', error);
+                    this.showError('加载数据失败，请刷新页面重试');
+                }
+            }
+
             render() {
                 const lesson = this.lessons[this.currentLessonIndex];
                 this.selectedOptions = {}; // 重置选项
@@ -429,21 +442,27 @@
                 const processedPrefixes = new Set();
                 const lessonData = [];
 
+                // 收集所有课号及其第一个出现的索引
                 this.lessons.forEach((l, i) => {
                     if (l.id && l.id.includes('_')) {
+                        // 多部分课文（如古诗三首）
                         const prefix = l.id.split('_')[0];
                         if (!processedPrefixes.has(prefix)) {
                             processedPrefixes.add(prefix);
                             const lessonNum = parseInt(prefix.replace('lesson', ''));
-                            lessonData.push({ index: i, sortKey: lessonNum });
+                            lessonData.push({ index: i, sortKey: lessonNum, prefix: prefix });
                         }
                     } else {
+                        // 普通课文
                         const lessonNum = parseInt(l.id.replace('lesson', ''));
-                        lessonData.push({ index: i, sortKey: lessonNum });
+                        lessonData.push({ index: i, sortKey: lessonNum, prefix: null });
                     }
                 });
 
+                // 按课号数字排序
                 lessonData.sort((a, b) => a.sortKey - b.sortKey);
+
+                // 返回排序后的索引列表
                 return lessonData.map(item => item.index);
             }
 
@@ -615,6 +634,10 @@
                     });
                 });
 
+            }
+
+            // 绑定固定导航按钮的事件（只调用一次）
+            bindNavigationEvents() {
                 document.getElementById('backBtn').addEventListener('click', () => this.goBack());
                 document.getElementById('resetBtn').addEventListener('click', () => {
                     this.render();

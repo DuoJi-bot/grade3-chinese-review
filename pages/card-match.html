@@ -228,6 +228,19 @@
                 this.loadProgress();
             }
 
+            // 覆盖初始化方法，确保导航按钮事件只绑定一次
+            async init() {
+                try {
+                    await this.loadData();
+                    this.render();
+                    this.bindNavigationEvents(); // 只在初始化时绑定一次导航按钮事件
+                    this.updateProgress();
+                } catch (error) {
+                    console.error('初始化失败:', error);
+                    this.showError('加载数据失败，请刷新页面重试');
+                }
+            }
+
             // 加载进度
             loadProgress() {
                 const saved = localStorage.getItem(this.progressKey);
@@ -415,7 +428,10 @@
                     });
                 });
 
-                // 按钮事件
+            }
+
+            // 绑定固定导航按钮的事件（只调用一次）
+            bindNavigationEvents() {
                 document.getElementById('backBtn').addEventListener('click', () => this.goBack());
                 document.getElementById('resetBtn').addEventListener('click', () => {
                     // 只重置当前单元+类型的进度
@@ -423,12 +439,16 @@
                     this.render();
                 });
                 document.getElementById('nextUnitBtn').addEventListener('click', () => {
+                    // 实现轮询：到达最后一个单元后跳回第一个单元
+                    // 保持当前的近义词/反义词状态
                     if (this.currentUnit < this.units.length - 1) {
                         this.currentUnit++;
-                        this.render(); // 自动加载对应的进度
                     } else {
-                        this.showComplete();
+                        // 最后一个单元，轮询回第一个单元
+                        this.currentUnit = 0;
+                        this.showToast('已回到第一单元');
                     }
+                    this.render(); // 自动加载对应的进度
                 });
             }
 
