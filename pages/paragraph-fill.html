@@ -131,10 +131,36 @@
 
         .paragraph-item {
             margin-bottom: 1.5rem;
+            position: relative;
         }
 
         .paragraph-item:last-child {
             margin-bottom: 0;
+        }
+
+        .paragraph-reset-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--warning-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all var(--transition-fast);
+            opacity: 0.8;
+            z-index: 10;
+        }
+
+        .paragraph-reset-btn:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .paragraph-reset-btn:active {
+            transform: scale(0.95);
         }
 
         .poem-section {
@@ -311,13 +337,14 @@
                         const displayText = text.replace(/（[^）]+）/g, (match) => {
                             const answer = match.slice(1, -1);
                             const uniqueId = `p${pIndex}_b${blankIndex}`;
-                            const html = `<span class="paragraph-blank" data-id="${uniqueId}" data-answer="${answer}"></span>`;
+                            const html = `<span class="paragraph-blank" data-paragraph-index="${pIndex}" data-id="${uniqueId}" data-answer="${answer}"></span>`;
                             blankIndex++;
                             return html;
                         });
 
                         return `
-                            <div class="paragraph-item">
+                            <div class="paragraph-item" data-paragraph-index="${pIndex}">
+                                <button class="paragraph-reset-btn" data-reset-paragraph="${pIndex}">🔄 重置</button>
                                 <div class="paragraph-area">
                                     ${displayText}
                                 </div>
@@ -464,6 +491,7 @@
                     // 普通课文：统一的选项池和空格
                     const options = this.container.querySelectorAll('.option-tag');
                     const blanks = this.container.querySelectorAll('.paragraph-blank');
+                    const resetBtns = this.container.querySelectorAll('.paragraph-reset-btn');
 
                     options.forEach(opt => {
                         opt.addEventListener('click', () => {
@@ -490,6 +518,15 @@
                             this.selectedOption.classList.add('used');
                             this.selectedOption.classList.remove('selected');
                             this.selectedOption = null;
+                        });
+                    });
+
+                    // 绑定重置按钮事件
+                    resetBtns.forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const paragraphIndex = btn.dataset.resetParagraph;
+                            this.resetParagraph(paragraphIndex);
                         });
                     });
                 }
@@ -528,6 +565,32 @@
                 }
 
                 document.getElementById('progressText').textContent = displayTitle;
+            }
+
+            resetParagraph(paragraphIndex) {
+                // 找到该段落对应的所有空格
+                const blanks = this.container.querySelectorAll(`.paragraph-blank[data-paragraph-index="${paragraphIndex}"]`);
+                const options = this.container.querySelectorAll('.option-tag');
+
+                blanks.forEach(blank => {
+                    if (blank.classList.contains('filled')) {
+                        const filledValue = blank.dataset.selected;
+
+                        // 恢复选项池中对应的选项
+                        options.forEach(opt => {
+                            if (opt.dataset.value === filledValue && opt.classList.contains('used')) {
+                                opt.classList.remove('used');
+                            }
+                        });
+
+                        // 清空空格
+                        blank.textContent = '';
+                        blank.classList.remove('filled', 'correct', 'wrong');
+                        delete blank.dataset.selected;
+                    }
+                });
+
+                this.showToast('已重置该段落');
             }
 
             checkAnswers() {
