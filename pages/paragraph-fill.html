@@ -211,15 +211,18 @@
                 const lesson = this.lessons[this.currentLessonIndex];
                 this.selectedOptions = {}; // 重置选项
 
-                // 检查是否是第4课《古诗三首》
-                const isLesson4 = lesson.id && lesson.id.startsWith('lesson4_');
+                // 检查当前课是否是多部分课文（如"古诗三首"）
+                // 通过检测lesson.id是否包含下划线来判断（如lesson4_wangdongting）
+                const isMultiPartLesson = lesson.id && lesson.id.includes('_');
 
                 let lessonsToRender = [];
                 let allBlanks = [];
+                let lessonPrefix = '';
 
-                if (isLesson4) {
-                    // 第4课特殊处理：找出所有三首古诗
-                    lessonsToRender = this.lessons.filter(l => l.id && l.id.startsWith('lesson4_'));
+                if (isMultiPartLesson) {
+                    // 多部分课文：提取课号前缀（如lesson4），找出所有同课号的部分
+                    lessonPrefix = lesson.id.split('_')[0]; // 提取lesson4
+                    lessonsToRender = this.lessons.filter(l => l.id && l.id.startsWith(lessonPrefix + '_'));
                     lessonsToRender.forEach(l => {
                         l.paragraphs.forEach(p => {
                             allBlanks.push(...p.blanks);
@@ -240,8 +243,8 @@
                 // 生成所有段落的HTML
                 let paragraphsHtml = '';
 
-                if (isLesson4) {
-                    // 第4课：按古诗分块显示，每首古诗有独立的选项池
+                if (isMultiPartLesson) {
+                    // 多部分课文：按部分分块显示，每部分有独立的选项池
                     paragraphsHtml = lessonsToRender.map((poemLesson, lessonIdx) => {
                         const poemTitle = poemLesson.title.split('- ')[1]; // 提取古诗名称
 
@@ -315,13 +318,13 @@
                     }).join('');
                 }
 
-                // 生成课文选择器（合并第4课的三首古诗）
+                // 生成课文选择器（合并多部分课文）
                 const lessonButtons = this.getLessonButtons();
 
                 let html = '';
 
-                if (isLesson4) {
-                    // 第4课：古诗已包含各自的选项池
+                if (isMultiPartLesson) {
+                    // 多部分课文：各部分已包含各自的选项池
                     html = `
                         <div class="lesson-selector">
                             ${lessonButtons}
@@ -361,26 +364,28 @@
 
             getLessonButtons() {
                 const buttons = [];
-                const processedLesson4 = false;
-                let skipNext = 0;
+                const processedPrefixes = new Set(); // 记录已处理的课号前缀
 
                 this.lessons.forEach((l, i) => {
-                    if (skipNext > 0) {
-                        skipNext--;
-                        return;
-                    }
+                    // 检查是否是多部分课文（包含下划线）
+                    if (l.id && l.id.includes('_')) {
+                        const prefix = l.id.split('_')[0]; // 提取课号前缀（如lesson4）
 
-                    // 检查是否是第4课的其中一首古诗
-                    if (l.id && l.id.startsWith('lesson4_')) {
-                        // 只在第一次遇到时添加合并按钮
-                        if (l.id === 'lesson4_wangdongting') {
-                            const isActive = this.lessons[this.currentLessonIndex].id &&
-                                           this.lessons[this.currentLessonIndex].id.startsWith('lesson4_');
+                        // 只在第一次遇到该课号时添加按钮
+                        if (!processedPrefixes.has(prefix)) {
+                            processedPrefixes.add(prefix);
+
+                            // 检查当前选中的课文是否属于这个课号
+                            const currentLessonId = this.lessons[this.currentLessonIndex].id;
+                            const isActive = currentLessonId && currentLessonId.startsWith(prefix + '_');
+
+                            // 从标题中提取课文名称（如"第4课《古诗三首》"）
+                            // 假设第一部分的标题格式为"第X课《XXX》- YYY"
+                            const mainTitle = l.title.split('- ')[0]; // 去掉" - 古诗名"部分
+
                             buttons.push(`
-                                <button class="lesson-btn ${isActive ? 'active' : ''}" data-index="${i}">第4课《古诗三首》</button>
+                                <button class="lesson-btn ${isActive ? 'active' : ''}" data-index="${i}">${mainTitle}</button>
                             `);
-                            // 跳过后面两首古诗
-                            skipNext = 2;
                         }
                     } else {
                         // 普通课文
@@ -409,10 +414,10 @@
 
             bindEvents() {
                 const lesson = this.lessons[this.currentLessonIndex];
-                const isLesson4 = lesson.id && lesson.id.startsWith('lesson4_');
+                const isMultiPartLesson = lesson.id && lesson.id.includes('_');
 
-                if (isLesson4) {
-                    // 第4课：为每个古诗块绑定独立的事件
+                if (isMultiPartLesson) {
+                    // 多部分课文：为每个部分块绑定独立的事件
                     const poemSections = this.container.querySelectorAll('.poem-section');
                     poemSections.forEach(section => {
                         const options = section.querySelectorAll('.option-tag');
@@ -509,9 +514,9 @@
                 const lesson = this.lessons[this.currentLessonIndex];
                 let displayTitle = lesson.title;
 
-                // 如果是第4课的任一古诗，显示统一标题
-                if (lesson.id && lesson.id.startsWith('lesson4_')) {
-                    displayTitle = '第4课《古诗三首》';
+                // 如果是多部分课文，显示统一标题（去掉"- 部分名"）
+                if (lesson.id && lesson.id.includes('_')) {
+                    displayTitle = lesson.title.split('- ')[0]; // 提取主标题
                 }
 
                 document.getElementById('progressText').textContent = displayTitle;
