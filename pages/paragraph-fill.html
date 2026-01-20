@@ -169,6 +169,7 @@
             background: var(--card-bg);
             border-radius: var(--radius-lg);
             border-left: 4px solid var(--primary-color);
+            position: relative;
         }
 
         .poem-section:last-child {
@@ -182,6 +183,31 @@
             margin: 0 0 1rem 0;
             padding-bottom: 0.5rem;
             border-bottom: 2px dashed var(--border-color);
+        }
+
+        .poem-reset-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--warning-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all var(--transition-fast);
+            opacity: 0.8;
+            z-index: 10;
+        }
+
+        .poem-reset-btn:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .poem-reset-btn:active {
+            transform: scale(0.95);
         }
 
         .poem-section .paragraph-area {
@@ -302,7 +328,7 @@
                             const displayText = text.replace(/（[^）]+）/g, (match) => {
                                 const answer = match.slice(1, -1);
                                 const blankId = `${uniqueId}_b${blankIndex}`;
-                                const html = `<span class="paragraph-blank" data-id="${blankId}" data-answer="${answer}"></span>`;
+                                const html = `<span class="paragraph-blank" data-poem-index="${lessonIdx}" data-id="${blankId}" data-answer="${answer}"></span>`;
                                 blankIndex++;
                                 return html;
                             });
@@ -320,7 +346,8 @@
                         `;
 
                         return `
-                            <div class="poem-section">
+                            <div class="poem-section" data-poem-index="${lessonIdx}">
+                                <button class="poem-reset-btn" data-reset-poem="${lessonIdx}">🔄 重置</button>
                                 <h3 class="poem-title">${poemTitle}</h3>
                                 ${poemParagraphs}
                                 ${poemOptionsHtml}
@@ -457,6 +484,7 @@
                     poemSections.forEach(section => {
                         const options = section.querySelectorAll('.option-tag');
                         const blanks = section.querySelectorAll('.paragraph-blank');
+                        const resetBtn = section.querySelector('.poem-reset-btn');
                         let selectedOption = null;
 
                         options.forEach(opt => {
@@ -486,6 +514,15 @@
                                 selectedOption = null;
                             });
                         });
+
+                        // 绑定古诗重置按钮事件
+                        if (resetBtn) {
+                            resetBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const poemIndex = resetBtn.dataset.resetPoem;
+                                this.resetPoem(poemIndex);
+                            });
+                        }
                     });
                 } else {
                     // 普通课文：统一的选项池和空格
@@ -591,6 +628,36 @@
                 });
 
                 this.showToast('已重置该段落');
+            }
+
+            resetPoem(poemIndex) {
+                // 找到该古诗section
+                const poemSection = this.container.querySelector(`.poem-section[data-poem-index="${poemIndex}"]`);
+                if (!poemSection) return;
+
+                // 找到该古诗对应的所有空格和选项
+                const blanks = poemSection.querySelectorAll(`.paragraph-blank[data-poem-index="${poemIndex}"]`);
+                const options = poemSection.querySelectorAll('.option-tag');
+
+                blanks.forEach(blank => {
+                    if (blank.classList.contains('filled')) {
+                        const filledValue = blank.dataset.selected;
+
+                        // 恢复选项池中对应的选项
+                        options.forEach(opt => {
+                            if (opt.dataset.value === filledValue && opt.classList.contains('used')) {
+                                opt.classList.remove('used');
+                            }
+                        });
+
+                        // 清空空格
+                        blank.textContent = '';
+                        blank.classList.remove('filled', 'correct', 'wrong');
+                        delete blank.dataset.selected;
+                    }
+                });
+
+                this.showToast('已重置该古诗');
             }
 
             checkAnswers() {
