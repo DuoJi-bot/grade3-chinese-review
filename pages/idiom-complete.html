@@ -135,7 +135,7 @@
                 let idiomHtml = '<div class="idiom-display">';
                 chars.forEach((char, index) => {
                     if (this.blanks.includes(index)) {
-                        idiomHtml += `<div class="idiom-char blank" data-index="${index}" data-answer="${char}">_</div>`;
+                        idiomHtml += `<div class="idiom-char blank" data-index="${index}" data-answer="${char}"></div>`;
                     } else {
                         idiomHtml += `<div class="idiom-char">${char}</div>`;
                     }
@@ -233,21 +233,21 @@
 
                 if (allCorrect) {
                     this.showCorrectFeedback();
+                    this.correctCount++;
+
                     // 朗读成语
                     setTimeout(() => {
-                        this.speak(this.currentIdiom, {
-                            onEnd: () => {
-                                // 延时跳转下一题
-                                setTimeout(() => {
-                                    if (this.currentIndex < this.questions.length - 1) {
-                                        this.nextQuestion();
-                                    } else {
-                                        this.showComplete();
-                                    }
-                                }, 500);
-                            }
-                        });
+                        this.speak(this.currentIdiom);
                     }, 300);
+
+                    // 无论朗读是否成功，都在2秒后跳转下一题
+                    setTimeout(() => {
+                        if (this.currentIndex < this.questions.length - 1) {
+                            this.nextQuestion();
+                        } else {
+                            this.showComplete();
+                        }
+                    }, 2000);
                 } else {
                     this.showWrongFeedback();
                     // 显示正确答案后跳转

@@ -400,6 +400,12 @@ a:hover {
   color: var(--primary-color);
 }
 
+.idiom-char.blank::before {
+  content: '?';
+  opacity: 0.3;
+  font-size: 1.5rem;
+}
+
 .idiom-char.filled {
   background: var(--primary-color);
   color: white;

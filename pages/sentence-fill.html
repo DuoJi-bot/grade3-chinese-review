@@ -30,11 +30,21 @@
             transition: all var(--transition-fast);
         }
 
+        .sentence-blank::before {
+            content: '?';
+            opacity: 0.3;
+            font-size: 1.2rem;
+        }
+
         .sentence-blank.filled {
             background: var(--primary-color);
             color: white;
             border-radius: var(--radius-sm);
             border-bottom: none;
+        }
+
+        .sentence-blank.filled::before {
+            content: none;
         }
 
         .sentence-blank.correct {
@@ -171,7 +181,7 @@
                     sentence = sentence.replace(/（[^）]+）/g, (match) => {
                         const blankId = `blank-${idx}-${blankCount}`;
                         blankCount++;
-                        return `<span class="sentence-blank" data-index="${idx}" data-blank-id="${blankId}" data-answer="${match.slice(1, -1)}">____</span>`;
+                        return `<span class="sentence-blank" data-index="${idx}" data-blank-id="${blankId}" data-answer="${match.slice(1, -1)}"></span>`;
                     });
 
                     return `<div class="sentence-item">${sentence}</div>`;
