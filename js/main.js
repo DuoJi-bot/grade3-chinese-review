@@ -178,12 +178,30 @@ function createQuizCard(module) {
 
     const card = document.createElement('div');
     card.className = 'quiz-card fade-in';
-    card.innerHTML = `
-        <div class="quiz-card-icon">${module.icon}</div>
-        <h3 class="quiz-card-title">${module.title}</h3>
-        <p class="quiz-card-desc">${module.desc}</p>
-        ${isCompleted ? '<span class="quiz-card-badge">✓ 已完成</span>' : ''}
-    `;
+
+    // 使用 DOM 方式创建徽章，避免 innerHTML 可能的问题
+    const icon = document.createElement('div');
+    icon.className = 'quiz-card-icon';
+    icon.textContent = module.icon;
+
+    const title = document.createElement('h3');
+    title.className = 'quiz-card-title';
+    title.textContent = module.title;
+
+    const desc = document.createElement('p');
+    desc.className = 'quiz-card-desc';
+    desc.textContent = module.desc;
+
+    card.appendChild(icon);
+    card.appendChild(title);
+    card.appendChild(desc);
+
+    if (isCompleted) {
+        const badge = document.createElement('span');
+        badge.className = 'quiz-card-badge';
+        badge.textContent = '✓ 已完成';
+        card.appendChild(badge);
+    }
 
     card.addEventListener('click', () => {
         navigateToQuiz(module);

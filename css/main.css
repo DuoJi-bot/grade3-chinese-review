@@ -220,6 +220,10 @@ a:hover {
   border: 2px solid transparent;
   position: relative;
   overflow: hidden;
+  /* 确保在 iOS Safari 上正确渲染 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  isolation: isolate; /* 创建新的层叠上下文 */
 }
 
 .quiz-card::before {
@@ -268,10 +272,16 @@ a:hover {
   right: var(--spacing-md);
   padding: 0.25rem 0.75rem;
   font-size: 0.75rem;
-  font-weight: 500;
-  background: var(--primary-light);
+  font-weight: 600;
+  background: var(--success-color);
   color: white;
   border-radius: var(--radius-full);
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+  z-index: 10;
+  /* 确保在 iOS Safari 上正确渲染 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
 }
 
 /* 练习页面布局 */
@@ -739,38 +749,49 @@ a:hover {
   html {
     font-size: 14px;
   }
-  
+
   .app-container {
     padding: var(--spacing-md);
   }
-  
+
   .app-title {
     font-size: 1.75rem;
   }
-  
+
   .category-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .idiom-char {
     width: 3rem;
     height: 3rem;
     font-size: 1.5rem;
   }
-  
+
   .char-item {
     width: 2.5rem;
     height: 2.5rem;
     font-size: 1.25rem;
   }
-  
+
   .card-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: var(--spacing-sm);
   }
-  
+
   .nav-buttons {
     flex-wrap: wrap;
+  }
+
+  /* 确保徽章在移动端正确显示 */
+  .quiz-card-badge {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.7rem;
+    /* iOS Safari 渲染优化 */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
   }
 }
 
