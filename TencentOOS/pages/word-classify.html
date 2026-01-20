@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>词语分类练习 - 三年级语文复习</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+            padding: 1.5rem;
+            background: var(--bg-color);
+            border-radius: var(--radius-lg);
+            margin-bottom: 1.5rem;
+            min-height: 80px;
+        }
+
+        .word-item {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            font-weight: 500;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-full);
+            cursor: grab;
+            transition: all var(--transition-fast);
+            user-select: none;
+        }
+
+        .word-item:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .word-item.dragging {
+            opacity: 0.5;
+            transform: scale(1.05);
+        }
+
+        .word-item.placed {
+            background: var(--success-light);
+            border-color: var(--success-color);
+            color: white;
+            cursor: default;
+        }
+
+        .word-item.wrong {
+            background: var(--error-light);
+            border-color: var(--error-color);
+            color: white;
+        }
+
+        .category-zones {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+        }
+
+        .category-zone {
+            background: var(--bg-color);
+            border-radius: var(--radius-xl);
+            padding: 1rem;
+            min-height: 180px;
+            text-align: center;
+            transition: all var(--transition-fast);
+            border: 2px dashed transparent;
+        }
+
+        .category-zone.drag-over {
+            border-color: var(--primary-color);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .category-zone-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-zone-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .category-zone-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            min-height: 50px;
+        }
+
+        .placed-word {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: var(--radius-md);
+        }
+
+        .hint-text {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <header class="quiz-header">
+            <div class="quiz-back-btn" id="backBtn">
+                <span>←</span>
+                <span>返回</span>
+            </div>
+            <h1 class="quiz-title" id="quizTitle">词语分类练习</h1>
+            <div class="quiz-progress" id="progressText">- / -</div>
+        </header>
+
+        <div class="progress-bar">
+            <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+
+        <div class="quiz-content" id="quizContent">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn btn-outline" id="resetBtn">🔄 重置</button>
+            <button class="btn btn-primary" id="checkBtn">✓ 检查答案</button>
+        </div>
+    </div>
+
+    <script src="../js/utils/tts.js"></script>
+    <script src="../js/utils/storage.js"></script>
+    <script src="../js/quiz-types/QuizBase.js"></script>
+    <script>
+        /**
+         * 词语分类归纳题型
+         * 将词语拖拽到对应的分类中
+         */
+        class WordClassifyQuiz extends QuizBase {
+            constructor(options) {
+                super(options);
+                this.categories = [];
+                this.allWords = [];
+                this.placements = {}; // 记录每个词语放置的位置
+            }
+
+            async loadData() {
+                const data = await this.fetchJson('../data/word_classify.json');
+                const section = data.sections.find(s => s.id === 'seasons');
+
+                if (section) {
+                    this.categories = section.categories;
+                    document.getElementById('quizTitle').textContent = section.title;
+
+                    // 收集所有词语
+                    this.allWords = [];
+                    this.categories.forEach(cat => {
+                        cat.words.forEach(word => {
+                            this.allWords.push({
+                                word: word,
+                                category: cat.name
+                            });
+                        });
+                    });
+
+                    // 只有一道题
+                    this.questions = [{ type: 'classify' }];
+                }
+            }
+
+            render() {
+                // 打乱词语顺序
+                const shuffledWords = this.shuffle(this.allWords);
+
+                // 词语池
+                let poolHtml = '<div class="word-pool" id="wordPool">';
+                shuffledWords.forEach((item, index) => {
+                    poolHtml += `<div class="word-item" draggable="true" data-word="${item.word}" data-category="${item.category}" data-index="${index}">${item.word}</div>`;
+                });
+                poolHtml += '</div>';
+
+                // 分类区域
+                let zonesHtml = '<div class="category-zones">';
+                this.categories.forEach(cat => {
+                    zonesHtml += `
+                        <div class="category-zone" data-category="${cat.name}">
+                            <div class="category-zone-icon">${cat.icon}</div>
+                            <div class="category-zone-title">${cat.name}</div>
+                            <div class="category-zone-keyword">${cat.keyword}</div>
+                            <div class="category-zone-items" data-category="${cat.name}"></div>
+                        </div>
+                    `;
+                });
+                zonesHtml += '</div>';
+
+                const hintHtml = '<p class="hint-text">将词语拖拽到对应的季节分类中</p>';
+
+                this.container.innerHTML = poolHtml + zonesHtml + hintHtml;
+
+                // 绑定拖拽事件
+                this.bindDragEvents();
+                this.bindButtonEvents();
+                this.updateProgress();
+            }
+
+            bindDragEvents() {
+                const wordItems = this.container.querySelectorAll('.word-item');
+                const zones = this.container.querySelectorAll('.category-zone');
+
+                wordItems.forEach(item => {
+                    item.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', item.dataset.word);
+                        e.dataTransfer.setData('category', item.dataset.category);
+                        item.classList.add('dragging');
+                    });
+
+                    item.addEventListener('dragend', () => {
+                        item.classList.remove('dragging');
+                    });
+
+                    // 支持点击选择
+                    item.addEventListener('click', () => {
+                        if (item.classList.contains('placed')) return;
+
+                        // 切换选中状态
+                        const wasSelected = item.classList.contains('selected');
+                        wordItems.forEach(i => i.classList.remove('selected'));
+
+                        if (!wasSelected) {
+                            item.classList.add('selected');
+                        }
+                    });
+                });
+
+                zones.forEach(zone => {
+                    zone.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        zone.classList.add('drag-over');
+                    });
+
+                    zone.addEventListener('dragleave', () => {
+                        zone.classList.remove('drag-over');
+                    });
+
+                    zone.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        zone.classList.remove('drag-over');
+
+                        const word = e.dataTransfer.getData('text/plain');
+                        const correctCategory = e.dataTransfer.getData('category');
+                        const targetCategory = zone.dataset.category;
+
+                        this.placeWord(word, targetCategory, correctCategory);
+                    });
+
+                    // 支持点击放置
+                    zone.addEventListener('click', () => {
+                        const selectedItem = this.container.querySelector('.word-item.selected');
+                        if (selectedItem) {
+                            const word = selectedItem.dataset.word;
+                            const correctCategory = selectedItem.dataset.category;
+                            const targetCategory = zone.dataset.category;
+
+                            this.placeWord(word, targetCategory, correctCategory);
+                            selectedItem.classList.remove('selected');
+                        }
+                    });
+                });
+            }
+
+            placeWord(word, targetCategory, correctCategory) {
+                const wordItem = this.container.querySelector(`.word-item[data-word="${word}"]`);
+                if (!wordItem || wordItem.classList.contains('placed')) return;
+
+                // 记录放置
+                this.placements[word] = {
+                    target: targetCategory,
+                    correct: correctCategory,
+                    isCorrect: targetCategory === correctCategory
+                };
+
+                // 更新词语状态
+                wordItem.classList.add('placed');
+
+                // 添加到目标区域
+                const zoneItems = this.container.querySelector(`.category-zone-items[data-category="${targetCategory}"]`);
+                const placedWord = document.createElement('span');
+                placedWord.className = 'placed-word';
+                placedWord.textContent = word;
+                placedWord.dataset.word = word;
+                zoneItems.appendChild(placedWord);
+
+                // 检查是否全部放置完成
+                this.checkAllPlaced();
+            }
+
+            checkAllPlaced() {
+                const remaining = this.container.querySelectorAll('.word-item:not(.placed)');
+                if (remaining.length === 0) {
+                    document.getElementById('checkBtn').classList.add('pulse');
+                }
+            }
+
+            bindButtonEvents() {
+                document.getElementById('backBtn').addEventListener('click', () => this.goBack());
+
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.placements = {};
+                    this.render();
+                });
+
+                document.getElementById('checkBtn').addEventListener('click', () => {
+                    this.checkAnswers();
+                });
+            }
+
+            checkAnswers() {
+                let correctCount = 0;
+                let totalCount = Object.keys(this.placements).length;
+
+                if (totalCount === 0) {
+                    this.showToast('请先将词语分类');
+                    return;
+                }
+
+                // 检查每个放置的词语
+                Object.entries(this.placements).forEach(([word, placement]) => {
+                    const placedWord = this.container.querySelector(`.placed-word[data-word="${word}"]`);
+                    const wordItem = this.container.querySelector(`.word-item[data-word="${word}"]`);
+
+                    if (placement.isCorrect) {
+                        correctCount++;
+                        if (placedWord) placedWord.style.background = 'var(--success-color)';
+                        if (wordItem) wordItem.classList.add('correct');
+                    } else {
+                        if (placedWord) placedWord.style.background = 'var(--error-color)';
+                        if (wordItem) wordItem.classList.add('wrong');
+                    }
+                });
+
+                // 更新统计
+                this.correctCount = correctCount;
+
+                if (correctCount === totalCount && totalCount === this.allWords.length) {
+                    this.showCorrectFeedback();
+                    setTimeout(() => this.showComplete(), 1000);
+                } else if (totalCount === this.allWords.length) {
+                    this.showToast(`正确 ${correctCount}/${totalCount}，再试一次吧！`);
+                } else {
+                    this.showToast(`已分类 ${totalCount}/${this.allWords.length}，请继续分类`);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const quiz = new WordClassifyQuiz({
+                moduleId: 'word-classify'
+            });
+            quiz.init();
+        });
+    </script>
+</body>
+
+</html>

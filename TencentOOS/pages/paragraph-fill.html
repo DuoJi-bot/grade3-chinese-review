@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>段落选择填空 - 三年级语文复习</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <style>
+        .lesson-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding: 0.5rem;
+            background: var(--bg-color);
+            border-radius: var(--radius-lg);
+        }
+
+        .lesson-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            white-space: nowrap;
+        }
+
+        .lesson-btn:hover,
+        .lesson-btn.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .paragraph-area {
+            padding: 1.5rem;
+            background: var(--bg-color);
+            border-radius: var(--radius-lg);
+            font-size: 1rem;
+            line-height: 2;
+            color: var(--text-primary);
+        }
+
+        .paragraph-blank {
+            display: inline-block;
+            min-width: 80px;
+            padding: 0.2rem 0.5rem;
+            border-bottom: 2px dashed var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .paragraph-blank::before {
+            content: '?';
+            opacity: 0.3;
+            font-size: 1rem;
+        }
+
+        .paragraph-blank:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .paragraph-blank.filled {
+            background: var(--primary-color);
+            color: white;
+            border-radius: var(--radius-sm);
+            border-bottom: none;
+        }
+
+        .paragraph-blank.filled::before {
+            content: none;
+        }
+
+        .paragraph-blank.correct {
+            background: var(--success-color);
+        }
+
+        .paragraph-blank.wrong {
+            background: var(--error-color);
+        }
+
+        .options-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            background: var(--card-bg);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+        }
+
+        .option-tag {
+            padding: 0.4rem 0.8rem;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-size: 0.875rem;
+        }
+
+        .option-tag:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+
+        .option-tag.selected {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+            color: white;
+        }
+
+        .option-tag.used {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .hint-text {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .paragraph-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .paragraph-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .poem-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .poem-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .poem-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px dashed var(--border-color);
+        }
+
+        .poem-section .paragraph-area {
+            margin-bottom: 1rem;
+        }
+
+        .poem-section .paragraph-area:last-child {
+            margin-bottom: 1rem;
+        }
+
+        .poem-section .options-pool {
+            margin-top: 1rem;
+            background: var(--bg-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <header class="quiz-header">
+            <div class="quiz-back-btn" id="backBtn">
+                <span>←</span>
+                <span>返回</span>
+            </div>
+            <h1 class="quiz-title">课文知识点填空</h1>
+            <div class="quiz-progress" id="progressText"></div>
+        </header>
+
+        <div class="quiz-content" id="quizContent">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn btn-outline" id="resetBtn">🔄 重置</button>
+            <button class="btn btn-primary" id="checkBtn">✓ 检查答案</button>
+            <button class="btn btn-outline" id="nextBtn">下一课 →</button>
+        </div>
+    </div>
+
+    <script src="../js/utils/tts.js"></script>
+    <script src="../js/utils/storage.js"></script>
+    <script src="../js/quiz-types/QuizBase.js"></script>
+    <script>
+        class ParagraphFillQuiz extends QuizBase {
+            constructor(options) {
+                super(options);
+                this.lessons = [];
+                this.selectedOptions = {}; // 记录每个空格选中的选项
+                this.currentLessonIndex = 0; // 当前课
+            }
+
+            async loadData() {
+                const data = await this.fetchJson('../data/course_knowledge.json');
+                this.lessons = data.lessons;
+                this.questions = this.lessons;
+            }
+
+            render() {
+                const lesson = this.lessons[this.currentLessonIndex];
+                this.selectedOptions = {}; // 重置选项
+
+                // 检查当前课是否是多部分课文（如"古诗三首"）
+                // 通过检测lesson.id是否包含下划线来判断（如lesson4_wangdongting）
+                const isMultiPartLesson = lesson.id && lesson.id.includes('_');
+
+                let lessonsToRender = [];
+                let allBlanks = [];
+                let lessonPrefix = '';
+
+                if (isMultiPartLesson) {
+                    // 多部分课文：提取课号前缀（如lesson4），找出所有同课号的部分
+                    lessonPrefix = lesson.id.split('_')[0]; // 提取lesson4
+                    lessonsToRender = this.lessons.filter(l => l.id && l.id.startsWith(lessonPrefix + '_'));
+                    lessonsToRender.forEach(l => {
+                        l.paragraphs.forEach(p => {
+                            allBlanks.push(...p.blanks);
+                        });
+                    });
+                } else {
+                    // 普通课文：只渲染当前课
+                    lessonsToRender = [lesson];
+                    lesson.paragraphs.forEach(p => {
+                        allBlanks.push(...p.blanks);
+                    });
+                }
+
+                // 生成选项池（包含所有答案和一些干扰项）
+                const distractors = this.generateDistractors(allBlanks);
+                const allOptions = this.shuffle([...allBlanks, ...distractors]);
+
+                // 生成所有段落的HTML
+                let paragraphsHtml = '';
+
+                if (isMultiPartLesson) {
+                    // 多部分课文：按部分分块显示，每部分有独立的选项池
+                    paragraphsHtml = lessonsToRender.map((poemLesson, lessonIdx) => {
+                        const poemTitle = poemLesson.title.split('- ')[1]; // 提取古诗名称
+
+                        // 收集当前古诗的所有答案
+                        const poemBlanks = [];
+                        poemLesson.paragraphs.forEach(p => {
+                            poemBlanks.push(...p.blanks);
+                        });
+
+                        // 为当前古诗生成独立的选项池
+                        const poemDistractors = this.generateDistractors(poemBlanks);
+                        const poemOptions = this.shuffle([...poemBlanks, ...poemDistractors]);
+
+                        // 生成段落HTML
+                        const poemParagraphs = poemLesson.paragraphs.map((paragraph, pIndex) => {
+                            let text = paragraph.text;
+                            let blankIndex = 0;
+                            const uniqueId = `l${lessonIdx}_p${pIndex}`;
+
+                            // 替换括号内容为空格
+                            const displayText = text.replace(/（[^）]+）/g, (match) => {
+                                const answer = match.slice(1, -1);
+                                const blankId = `${uniqueId}_b${blankIndex}`;
+                                const html = `<span class="paragraph-blank" data-id="${blankId}" data-answer="${answer}"></span>`;
+                                blankIndex++;
+                                return html;
+                            });
+
+                            return `<div class="paragraph-area">${displayText}</div>`;
+                        }).join('');
+
+                        // 生成当前古诗的选项池
+                        const poemOptionsHtml = `
+                            <div class="options-pool">
+                                ${poemOptions.map(opt => `
+                                    <div class="option-tag" data-value="${opt}">${opt}</div>
+                                `).join('')}
+                            </div>
+                        `;
+
+                        return `
+                            <div class="poem-section">
+                                <h3 class="poem-title">${poemTitle}</h3>
+                                ${poemParagraphs}
+                                ${poemOptionsHtml}
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    // 普通课文：直接显示所有段落
+                    paragraphsHtml = lesson.paragraphs.map((paragraph, pIndex) => {
+                        let text = paragraph.text;
+                        let blankIndex = 0;
+
+                        // 替换括号内容为空格
+                        const displayText = text.replace(/（[^）]+）/g, (match) => {
+                            const answer = match.slice(1, -1);
+                            const uniqueId = `p${pIndex}_b${blankIndex}`;
+                            const html = `<span class="paragraph-blank" data-id="${uniqueId}" data-answer="${answer}"></span>`;
+                            blankIndex++;
+                            return html;
+                        });
+
+                        return `
+                            <div class="paragraph-item">
+                                <div class="paragraph-area">
+                                    ${displayText}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 生成课文选择器（合并多部分课文）
+                const lessonButtons = this.getLessonButtons();
+
+                let html = '';
+
+                if (isMultiPartLesson) {
+                    // 多部分课文：各部分已包含各自的选项池
+                    html = `
+                        <div class="lesson-selector">
+                            ${lessonButtons}
+                        </div>
+
+                        <div class="paragraphs-container">
+                            ${paragraphsHtml}
+                        </div>
+
+                        <p class="hint-text">先点击选项，再点击空格填入</p>
+                    `;
+                } else {
+                    // 普通课文：统一的选项池
+                    html = `
+                        <div class="lesson-selector">
+                            ${lessonButtons}
+                        </div>
+
+                        <div class="paragraphs-container">
+                            ${paragraphsHtml}
+                        </div>
+
+                        <div class="options-pool">
+                            ${allOptions.map(opt => `
+                                <div class="option-tag" data-value="${opt}">${opt}</div>
+                            `).join('')}
+                        </div>
+
+                        <p class="hint-text">先点击选项，再点击空格填入</p>
+                    `;
+                }
+
+                this.container.innerHTML = html;
+                this.bindEvents();
+                this.updateProgress();
+            }
+
+            getLessonButtons() {
+                const buttons = [];
+                const processedPrefixes = new Set(); // 记录已处理的课号前缀
+
+                this.lessons.forEach((l, i) => {
+                    // 检查是否是多部分课文（包含下划线）
+                    if (l.id && l.id.includes('_')) {
+                        const prefix = l.id.split('_')[0]; // 提取课号前缀（如lesson4）
+
+                        // 只在第一次遇到该课号时添加按钮
+                        if (!processedPrefixes.has(prefix)) {
+                            processedPrefixes.add(prefix);
+
+                            // 检查当前选中的课文是否属于这个课号
+                            const currentLessonId = this.lessons[this.currentLessonIndex].id;
+                            const isActive = currentLessonId && currentLessonId.startsWith(prefix + '_');
+
+                            // 从标题中提取课文名称（如"第4课《古诗三首》"）
+                            // 假设第一部分的标题格式为"第X课《XXX》- YYY"
+                            const mainTitle = l.title.split('- ')[0]; // 去掉" - 古诗名"部分
+
+                            buttons.push(`
+                                <button class="lesson-btn ${isActive ? 'active' : ''}" data-index="${i}">${mainTitle}</button>
+                            `);
+                        }
+                    } else {
+                        // 普通课文
+                        const displayTitle = l.title.length > 15 ? l.title.slice(0, 15) + '...' : l.title;
+                        buttons.push(`
+                            <button class="lesson-btn ${i === this.currentLessonIndex ? 'active' : ''}" data-index="${i}">${displayTitle}</button>
+                        `);
+                    }
+                });
+
+                return buttons.join('');
+            }
+
+            generateDistractors(blanks) {
+                // 从其他课文获取干扰选项
+                const allBlanks = [];
+                this.lessons.forEach(l => {
+                    l.paragraphs.forEach(p => {
+                        allBlanks.push(...p.blanks);
+                    });
+                });
+
+                const unique = [...new Set(allBlanks)].filter(b => !blanks.includes(b));
+                return this.shuffle(unique).slice(0, Math.min(3, blanks.length));
+            }
+
+            bindEvents() {
+                const lesson = this.lessons[this.currentLessonIndex];
+                const isMultiPartLesson = lesson.id && lesson.id.includes('_');
+
+                if (isMultiPartLesson) {
+                    // 多部分课文：为每个部分块绑定独立的事件
+                    const poemSections = this.container.querySelectorAll('.poem-section');
+                    poemSections.forEach(section => {
+                        const options = section.querySelectorAll('.option-tag');
+                        const blanks = section.querySelectorAll('.paragraph-blank');
+                        let selectedOption = null;
+
+                        options.forEach(opt => {
+                            opt.addEventListener('click', () => {
+                                if (opt.classList.contains('used')) return;
+                                options.forEach(o => o.classList.remove('selected'));
+                                opt.classList.add('selected');
+                                selectedOption = opt;
+                            });
+                        });
+
+                        blanks.forEach(blank => {
+                            blank.addEventListener('click', () => {
+                                if (blank.classList.contains('filled')) return;
+                                if (!selectedOption) {
+                                    this.showToast('请先选择一个答案');
+                                    return;
+                                }
+
+                                const value = selectedOption.dataset.value;
+                                blank.textContent = value;
+                                blank.classList.add('filled');
+                                blank.dataset.selected = value;
+
+                                selectedOption.classList.add('used');
+                                selectedOption.classList.remove('selected');
+                                selectedOption = null;
+                            });
+                        });
+                    });
+                } else {
+                    // 普通课文：统一的选项池和空格
+                    const options = this.container.querySelectorAll('.option-tag');
+                    const blanks = this.container.querySelectorAll('.paragraph-blank');
+
+                    options.forEach(opt => {
+                        opt.addEventListener('click', () => {
+                            if (opt.classList.contains('used')) return;
+                            options.forEach(o => o.classList.remove('selected'));
+                            opt.classList.add('selected');
+                            this.selectedOption = opt;
+                        });
+                    });
+
+                    blanks.forEach(blank => {
+                        blank.addEventListener('click', () => {
+                            if (blank.classList.contains('filled')) return;
+                            if (!this.selectedOption) {
+                                this.showToast('请先选择一个答案');
+                                return;
+                            }
+
+                            const value = this.selectedOption.dataset.value;
+                            blank.textContent = value;
+                            blank.classList.add('filled');
+                            blank.dataset.selected = value;
+
+                            this.selectedOption.classList.add('used');
+                            this.selectedOption.classList.remove('selected');
+                            this.selectedOption = null;
+                        });
+                    });
+                }
+
+                // 课文切换
+                const lessonBtns = this.container.querySelectorAll('.lesson-btn');
+                lessonBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.currentLessonIndex = parseInt(btn.dataset.index);
+                        this.render();
+                    });
+                });
+
+                document.getElementById('backBtn').addEventListener('click', () => this.goBack());
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.render();
+                });
+                document.getElementById('checkBtn').addEventListener('click', () => this.checkAnswers());
+                document.getElementById('nextBtn').addEventListener('click', () => {
+                    if (this.currentLessonIndex < this.lessons.length - 1) {
+                        this.currentLessonIndex++;
+                        this.render();
+                    } else {
+                        this.showComplete();
+                    }
+                });
+            }
+
+            updateProgress() {
+                const lesson = this.lessons[this.currentLessonIndex];
+                let displayTitle = lesson.title;
+
+                // 如果是多部分课文，显示统一标题（去掉"- 部分名"）
+                if (lesson.id && lesson.id.includes('_')) {
+                    displayTitle = lesson.title.split('- ')[0]; // 提取主标题
+                }
+
+                document.getElementById('progressText').textContent = displayTitle;
+            }
+
+            checkAnswers() {
+                const blanks = this.container.querySelectorAll('.paragraph-blank');
+                let correct = 0;
+
+                blanks.forEach(blank => {
+                    const selected = blank.dataset.selected;
+                    const answer = blank.dataset.answer;
+
+                    if (!selected) {
+                        blank.textContent = answer;
+                        blank.classList.add('wrong');
+                    } else if (selected === answer) {
+                        blank.classList.add('correct');
+                        correct++;
+                    } else {
+                        blank.classList.add('wrong');
+                        // 显示正确答案
+                        setTimeout(() => {
+                            blank.textContent = answer;
+                        }, 500);
+                    }
+                });
+
+                this.correctCount += correct;
+
+                if (correct === blanks.length) {
+                    this.showCorrectFeedback();
+                    this.showToast('🎉 全部正确！');
+                } else {
+                    this.showToast(`正确 ${correct}/${blanks.length}`);
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const quiz = new ParagraphFillQuiz({
+                moduleId: 'paragraph-fill'
+            });
+            quiz.init();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,300 @@
+{
+    "meta": {
+        "title": "古诗数据",
+        "description": "三年级上学期语文复习 - 古诗背诵题型数据",
+        "quizType": "古诗背诵题型"
+    },
+    "poems": [
+        {
+            "id": "suojian",
+            "title": "所见",
+            "dynasty": "清",
+            "author": "袁枚",
+            "content": [
+                "牧童骑黄牛，",
+                "歌声振林樾。",
+                "意欲捕鸣蝉，",
+                "忽然闭口立。"
+            ],
+            "fakeAuthors": [
+                "杜牧",
+                "李白",
+                "王维"
+            ],
+            "fakeDynasties": [
+                "唐",
+                "宋",
+                "明"
+            ]
+        },
+        {
+            "id": "wangdongting",
+            "title": "望洞庭",
+            "dynasty": "唐",
+            "author": "刘禹锡",
+            "content": [
+                "湖光秋月两相和，",
+                "潭面无风镜未磨。",
+                "遥望洞庭山水翠，",
+                "白银盘里一青螺。"
+            ],
+            "fakeAuthors": [
+                "杜牧",
+                "李白",
+                "苏轼"
+            ],
+            "fakeDynasties": [
+                "宋",
+                "清",
+                "明"
+            ],
+            "notes": {
+                "metaphor": "诗中的'镜'和'青螺'分别比喻水面和洞庭湖中的君山",
+                "keywords": [
+                    "白",
+                    "青"
+                ]
+            }
+        },
+        {
+            "id": "shanxing",
+            "title": "山行",
+            "dynasty": "唐",
+            "author": "杜牧",
+            "content": [
+                "远上寒山石径斜，",
+                "白云生处有人家。",
+                "停车坐爱枫林晚，",
+                "霜叶红于二月花。"
+            ],
+            "fakeAuthors": [
+                "刘禹锡",
+                "李白",
+                "王维"
+            ],
+            "fakeDynasties": [
+                "宋",
+                "清",
+                "明"
+            ],
+            "notes": {
+                "season": "秋天",
+                "scenery": [
+                    "寒山",
+                    "石径",
+                    "白云",
+                    "人家",
+                    "枫林"
+                ],
+                "坐": "因为"
+            }
+        },
+        {
+            "id": "yeshusuojian",
+            "title": "夜书所见",
+            "dynasty": "宋",
+            "author": "叶绍翁",
+            "content": [
+                "萧萧梧叶送寒声，",
+                "江上秋风动客情。",
+                "知有儿童挑促织，",
+                "夜深篱落一灯明。"
+            ],
+            "fakeAuthors": [
+                "杜牧",
+                "苏轼",
+                "刘禹锡"
+            ],
+            "fakeDynasties": [
+                "唐",
+                "清",
+                "明"
+            ],
+            "notes": {
+                "书": "书写",
+                "emotion": "思乡念亲、羁旅之愁"
+            }
+        },
+        {
+            "id": "zhouyeshusuojian",
+            "title": "舟夜书所见",
+            "dynasty": "清",
+            "author": "查慎行",
+            "content": [
+                "月黑见渔灯，",
+                "孤光一点萤。",
+                "微微风簇浪，",
+                "散作满河星。"
+            ],
+            "fakeAuthors": [
+                "袁枚",
+                "李白",
+                "杜牧"
+            ],
+            "fakeDynasties": [
+                "唐",
+                "宋",
+                "明"
+            ]
+        },
+        {
+            "id": "zaofabaidicheng",
+            "title": "早发白帝城",
+            "dynasty": "唐",
+            "author": "李白",
+            "content": [
+                "朝辞白帝彩云间，",
+                "千里江陵一日还。",
+                "两岸猿声啼不住，",
+                "轻舟已过万重山。"
+            ],
+            "fakeAuthors": [
+                "杜牧",
+                "刘禹锡",
+                "王维"
+            ],
+            "fakeDynasties": [
+                "宋",
+                "清",
+                "明"
+            ]
+        },
+        {
+            "id": "luchai",
+            "title": "鹿柴",
+            "dynasty": "唐",
+            "author": "王维",
+            "content": [
+                "空山不见人，",
+                "但闻人语响。",
+                "返景入深林，",
+                "复照青苔上。"
+            ],
+            "fakeAuthors": [
+                "杜牧",
+                "李白",
+                "刘禹锡"
+            ],
+            "fakeDynasties": [
+                "宋",
+                "清",
+                "明"
+            ],
+            "notes": {
+                "theme": "山林寂静幽深",
+                "quiet": "空山不见人，但闻人语响",
+                "deep": "返景入深林，复照青苔上"
+            }
+        },
+        {
+            "id": "wangtianmenshan",
+            "title": "望天门山",
+            "dynasty": "唐",
+            "author": "李白",
+            "content": [
+                "天门中断楚江开，",
+                "碧水东流至此回。",
+                "两岸青山相对出，",
+                "孤帆一片日边来。"
+            ],
+            "fakeAuthors": [
+                "杜牧",
+                "刘禹锡",
+                "王维"
+            ],
+            "fakeDynasties": [
+                "宋",
+                "清",
+                "明"
+            ],
+            "notes": {
+                "verbs": [
+                    "断",
+                    "开",
+                    "流",
+                    "回",
+                    "出",
+                    "来"
+                ],
+                "scenery": [
+                    "楚江",
+                    "青山",
+                    "碧水",
+                    "白帆红日"
+                ]
+            }
+        },
+        {
+            "id": "yinhushangchuqinghouyu",
+            "title": "饮湖上初晴后雨",
+            "dynasty": "宋",
+            "author": "苏轼",
+            "content": [
+                "水光潋滟晴方好，",
+                "山色空蒙雨亦奇。",
+                "欲把西湖比西子，",
+                "淡妆浓抹总相宜。"
+            ],
+            "fakeAuthors": [
+                "杜牧",
+                "李白",
+                "刘禹锡"
+            ],
+            "fakeDynasties": [
+                "唐",
+                "清",
+                "明"
+            ],
+            "notes": {
+                "西子": "春秋时代越国美女西施",
+                "比喻": "把西湖比作西施"
+            }
+        },
+        {
+            "id": "cailianqu",
+            "title": "采莲曲",
+            "dynasty": "唐",
+            "author": "王昌龄",
+            "content": [
+                "荷叶罗裙一色裁，",
+                "芙蓉向脸两边开。",
+                "乱入池中看不见，",
+                "闻歌始觉有人来。"
+            ],
+            "fakeAuthors": [
+                "杜牧",
+                "李白",
+                "王维"
+            ],
+            "fakeDynasties": [
+                "宋",
+                "清",
+                "明"
+            ]
+        },
+        {
+            "id": "simaguang",
+            "title": "司马光",
+            "dynasty": "宋",
+            "author": "佚名",
+            "isClassical": true,
+            "content": [
+                "群儿戏于庭，一儿登瓮，足跌没水中。",
+                "众皆弃去，光持石击瓮破之，水迸，儿得活。"
+            ],
+            "fakeAuthors": [
+                "司马迁",
+                "欧阳修",
+                "王安石"
+            ],
+            "fakeDynasties": [
+                "唐",
+                "清",
+                "明"
+            ],
+            "notes": {
+                "character": "遇事不慌乱、聪明、果敢"
+            }
+        }
+    ]
+}

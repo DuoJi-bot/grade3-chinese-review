@@ -1,0 +1,625 @@
+{
+    "meta": {
+        "title": "多音字数据",
+        "description": "三年级上学期语文复习 - 多音字辨析题型数据",
+        "quizType": "多音字辨析题型"
+    },
+    "polyphones": [
+        {
+            "character": "假",
+            "readings": [
+                {
+                    "pinyin": "jià",
+                    "words": [
+                        "假日",
+                        "放假"
+                    ]
+                },
+                {
+                    "pinyin": "jiǎ",
+                    "words": [
+                        "假如",
+                        "真假"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "背",
+            "readings": [
+                {
+                    "pinyin": "bèi",
+                    "words": [
+                        "后背",
+                        "违背"
+                    ]
+                },
+                {
+                    "pinyin": "bēi",
+                    "words": [
+                        "背负",
+                        "背包"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "圈",
+            "readings": [
+                {
+                    "pinyin": "quān",
+                    "words": [
+                        "圆圈",
+                        "转圈"
+                    ]
+                },
+                {
+                    "pinyin": "juàn",
+                    "words": [
+                        "羊圈",
+                        "圈养"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "挑",
+            "readings": [
+                {
+                    "pinyin": "tiǎo",
+                    "words": [
+                        "挑战",
+                        "挑逗"
+                    ]
+                },
+                {
+                    "pinyin": "tiāo",
+                    "words": [
+                        "挑水",
+                        "挑选"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "几",
+            "readings": [
+                {
+                    "pinyin": "jī",
+                    "words": [
+                        "几乎",
+                        "茶几"
+                    ]
+                },
+                {
+                    "pinyin": "jǐ",
+                    "words": [
+                        "几个",
+                        "几何"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "吗",
+            "readings": [
+                {
+                    "pinyin": "má",
+                    "words": [
+                        "干吗"
+                    ]
+                },
+                {
+                    "pinyin": "ma",
+                    "words": [
+                        "好吗",
+                        "是吗"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "中",
+            "readings": [
+                {
+                    "pinyin": "zhòng",
+                    "words": [
+                        "中计",
+                        "中暑"
+                    ]
+                },
+                {
+                    "pinyin": "zhōng",
+                    "words": [
+                        "中间",
+                        "中央"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "弹",
+            "readings": [
+                {
+                    "pinyin": "dàn",
+                    "words": [
+                        "子弹",
+                        "枪弹"
+                    ]
+                },
+                {
+                    "pinyin": "tán",
+                    "words": [
+                        "弹琴",
+                        "弹性"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "挣",
+            "readings": [
+                {
+                    "pinyin": "zhēng",
+                    "words": [
+                        "挣扎"
+                    ]
+                },
+                {
+                    "pinyin": "zhèng",
+                    "words": [
+                        "挣钱",
+                        "挣脱"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "晃",
+            "readings": [
+                {
+                    "pinyin": "huǎng",
+                    "words": [
+                        "晃眼",
+                        "虚晃"
+                    ]
+                },
+                {
+                    "pinyin": "huàng",
+                    "words": [
+                        "晃动",
+                        "摇晃"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "划",
+            "readings": [
+                {
+                    "pinyin": "huà",
+                    "words": [
+                        "划分",
+                        "策划"
+                    ]
+                },
+                {
+                    "pinyin": "huá",
+                    "words": [
+                        "划船",
+                        "划拳"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "角",
+            "readings": [
+                {
+                    "pinyin": "jiǎo",
+                    "words": [
+                        "角落",
+                        "角度",
+                        "五角星"
+                    ]
+                },
+                {
+                    "pinyin": "jué",
+                    "words": [
+                        "角色",
+                        "配角",
+                        "角斗"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "喷",
+            "readings": [
+                {
+                    "pinyin": "pēn",
+                    "words": [
+                        "喷泉",
+                        "喷射"
+                    ]
+                },
+                {
+                    "pinyin": "pèn",
+                    "words": [
+                        "喷香"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "答",
+            "readings": [
+                {
+                    "pinyin": "dā",
+                    "words": [
+                        "答应",
+                        "滴答"
+                    ]
+                },
+                {
+                    "pinyin": "dá",
+                    "words": [
+                        "回答",
+                        "问答"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "应",
+            "readings": [
+                {
+                    "pinyin": "yìng",
+                    "words": [
+                        "应答",
+                        "应用"
+                    ]
+                },
+                {
+                    "pinyin": "yīng",
+                    "words": [
+                        "应该",
+                        "应当"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "骨",
+            "readings": [
+                {
+                    "pinyin": "gū",
+                    "words": [
+                        "骨碌",
+                        "骨朵"
+                    ]
+                },
+                {
+                    "pinyin": "gǔ",
+                    "words": [
+                        "骨头",
+                        "排骨"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "处",
+            "readings": [
+                {
+                    "pinyin": "chǔ",
+                    "words": [
+                        "处理",
+                        "处境"
+                    ]
+                },
+                {
+                    "pinyin": "chù",
+                    "words": [
+                        "长处",
+                        "远处"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "啦",
+            "readings": [
+                {
+                    "pinyin": "lā",
+                    "words": [
+                        "呼啦",
+                        "哗啦"
+                    ]
+                },
+                {
+                    "pinyin": "la",
+                    "words": [
+                        "好啦"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "参",
+            "readings": [
+                {
+                    "pinyin": "shēn",
+                    "words": [
+                        "海参",
+                        "人参"
+                    ]
+                },
+                {
+                    "pinyin": "cān",
+                    "words": [
+                        "参观",
+                        "参加"
+                    ]
+                },
+                {
+                    "pinyin": "cēn",
+                    "words": [
+                        "参差不齐"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "抹",
+            "readings": [
+                {
+                    "pinyin": "mǒ",
+                    "words": [
+                        "抹杀",
+                        "涂抹"
+                    ]
+                },
+                {
+                    "pinyin": "mò",
+                    "words": [
+                        "拐弯抹角",
+                        "抹得开"
+                    ]
+                },
+                {
+                    "pinyin": "mā",
+                    "words": [
+                        "抹布",
+                        "抹脸"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "臂",
+            "readings": [
+                {
+                    "pinyin": "bei",
+                    "words": [
+                        "胳臂"
+                    ]
+                },
+                {
+                    "pinyin": "bì",
+                    "words": [
+                        "手臂",
+                        "臂膀"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "舍",
+            "readings": [
+                {
+                    "pinyin": "shě",
+                    "words": [
+                        "舍弃",
+                        "取舍"
+                    ]
+                },
+                {
+                    "pinyin": "shè",
+                    "words": [
+                        "宿舍",
+                        "校舍"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "兴",
+            "readings": [
+                {
+                    "pinyin": "xīng",
+                    "words": [
+                        "兴奋",
+                        "兴旺"
+                    ]
+                },
+                {
+                    "pinyin": "xìng",
+                    "words": [
+                        "高兴",
+                        "兴趣"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "呢",
+            "readings": [
+                {
+                    "pinyin": "ní",
+                    "words": [
+                        "毛呢",
+                        "呢绒"
+                    ]
+                },
+                {
+                    "pinyin": "ne",
+                    "words": [
+                        "如今呢"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "旋",
+            "readings": [
+                {
+                    "pinyin": "xuán",
+                    "words": [
+                        "盘旋",
+                        "旋转"
+                    ]
+                },
+                {
+                    "pinyin": "xuàn",
+                    "words": [
+                        "旋风",
+                        "旋子"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "没",
+            "readings": [
+                {
+                    "pinyin": "mò",
+                    "words": [
+                        "埋没",
+                        "淹没"
+                    ]
+                },
+                {
+                    "pinyin": "méi",
+                    "words": [
+                        "没有",
+                        "没事"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "斗",
+            "readings": [
+                {
+                    "pinyin": "dǒu",
+                    "words": [
+                        "北斗",
+                        "斗胆"
+                    ]
+                },
+                {
+                    "pinyin": "dòu",
+                    "words": [
+                        "战斗",
+                        "斗争"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "大",
+            "readings": [
+                {
+                    "pinyin": "dà",
+                    "words": [
+                        "大人",
+                        "大家"
+                    ]
+                },
+                {
+                    "pinyin": "dài",
+                    "words": [
+                        "牙科大夫"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "还",
+            "readings": [
+                {
+                    "pinyin": "huán",
+                    "words": [
+                        "归还",
+                        "还愿"
+                    ]
+                },
+                {
+                    "pinyin": "hái",
+                    "words": [
+                        "还有",
+                        "还是"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "禁",
+            "readings": [
+                {
+                    "pinyin": "jīn",
+                    "words": [
+                        "不禁",
+                        "禁不住"
+                    ]
+                },
+                {
+                    "pinyin": "jìn",
+                    "words": [
+                        "禁止",
+                        "禁区"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "剥",
+            "readings": [
+                {
+                    "pinyin": "bō",
+                    "words": [
+                        "剥离",
+                        "剥削"
+                    ]
+                },
+                {
+                    "pinyin": "bāo",
+                    "words": [
+                        "剥皮",
+                        "剥壳"
+                    ]
+                }
+            ]
+        },
+        {
+            "character": "行",
+            "readings": [
+                {
+                    "pinyin": "xíng",
+                    "words": [
+                        "步行",
+                        "行走"
+                    ]
+                },
+                {
+                    "pinyin": "háng",
+                    "words": [
+                        "银行",
+                        "行长"
+                    ]
+                }
+            ]
+        }
+    ]
+}
