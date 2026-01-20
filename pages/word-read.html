@@ -153,6 +153,19 @@
                 this.questions = this.patterns;
             }
 
+            // 覆盖初始化方法，确保导航按钮事件只绑定一次
+            async init() {
+                try {
+                    await this.loadData();
+                    this.render();
+                    this.bindNavigationEvents(); // 只在初始化时绑定一次导航按钮事件
+                    this.updateProgress();
+                } catch (error) {
+                    console.error('初始化失败:', error);
+                    this.showError('加载数据失败，请刷新页面重试');
+                }
+            }
+
             render() {
                 const pattern = this.patterns[this.currentPatternIndex];
 
@@ -202,8 +215,11 @@
                         this.render();
                     });
                 });
+            }
 
-                // 导航按钮
+            // 绑定固定导航按钮的事件（只调用一次）
+            bindNavigationEvents() {
+                // 上一组按钮
                 document.getElementById('prevBtn').addEventListener('click', () => {
                     if (this.currentPatternIndex > 0) {
                         this.currentPatternIndex--;
@@ -211,19 +227,22 @@
                     }
                 });
 
+                // 下一组按钮
                 document.getElementById('nextBtn').addEventListener('click', () => {
                     if (this.currentPatternIndex < this.patterns.length - 1) {
                         this.currentPatternIndex++;
                         this.render();
                     } else {
+                        // 最后一组，显示完成页面
                         this.correctCount = this.patterns.length;
                         this.showComplete();
                     }
                 });
 
+                // 返回按钮
                 document.getElementById('backBtn').addEventListener('click', () => this.goBack());
 
-                // 朗读全部
+                // 朗读全部按钮
                 document.getElementById('readAllBtn').addEventListener('click', () => {
                     this.readAllWords();
                 });
