@@ -155,7 +155,12 @@
         }
 
         .poem-section .paragraph-area:last-child {
-            margin-bottom: 0;
+            margin-bottom: 1rem;
+        }
+
+        .poem-section .options-pool {
+            margin-top: 1rem;
+            background: var(--bg-color);
         }
     </style>
 </head>
@@ -236,9 +241,21 @@
                 let paragraphsHtml = '';
 
                 if (isLesson4) {
-                    // 第4课：按古诗分块显示
+                    // 第4课：按古诗分块显示，每首古诗有独立的选项池
                     paragraphsHtml = lessonsToRender.map((poemLesson, lessonIdx) => {
                         const poemTitle = poemLesson.title.split('- ')[1]; // 提取古诗名称
+
+                        // 收集当前古诗的所有答案
+                        const poemBlanks = [];
+                        poemLesson.paragraphs.forEach(p => {
+                            poemBlanks.push(...p.blanks);
+                        });
+
+                        // 为当前古诗生成独立的选项池
+                        const poemDistractors = this.generateDistractors(poemBlanks);
+                        const poemOptions = this.shuffle([...poemBlanks, ...poemDistractors]);
+
+                        // 生成段落HTML
                         const poemParagraphs = poemLesson.paragraphs.map((paragraph, pIndex) => {
                             let text = paragraph.text;
                             let blankIndex = 0;
@@ -256,10 +273,20 @@
                             return `<div class="paragraph-area">${displayText}</div>`;
                         }).join('');
 
+                        // 生成当前古诗的选项池
+                        const poemOptionsHtml = `
+                            <div class="options-pool">
+                                ${poemOptions.map(opt => `
+                                    <div class="option-tag" data-value="${opt}">${opt}</div>
+                                `).join('')}
+                            </div>
+                        `;
+
                         return `
                             <div class="poem-section">
                                 <h3 class="poem-title">${poemTitle}</h3>
                                 ${poemParagraphs}
+                                ${poemOptionsHtml}
                             </div>
                         `;
                     }).join('');
@@ -291,23 +318,41 @@
                 // 生成课文选择器（合并第4课的三首古诗）
                 const lessonButtons = this.getLessonButtons();
 
-                let html = `
-                    <div class="lesson-selector">
-                        ${lessonButtons}
-                    </div>
+                let html = '';
 
-                    <div class="paragraphs-container">
-                        ${paragraphsHtml}
-                    </div>
+                if (isLesson4) {
+                    // 第4课：古诗已包含各自的选项池
+                    html = `
+                        <div class="lesson-selector">
+                            ${lessonButtons}
+                        </div>
 
-                    <div class="options-pool">
-                        ${allOptions.map(opt => `
-                            <div class="option-tag" data-value="${opt}">${opt}</div>
-                        `).join('')}
-                    </div>
+                        <div class="paragraphs-container">
+                            ${paragraphsHtml}
+                        </div>
 
-                    <p class="hint-text">先点击选项，再点击空格填入</p>
-                `;
+                        <p class="hint-text">先点击选项，再点击空格填入</p>
+                    `;
+                } else {
+                    // 普通课文：统一的选项池
+                    html = `
+                        <div class="lesson-selector">
+                            ${lessonButtons}
+                        </div>
+
+                        <div class="paragraphs-container">
+                            ${paragraphsHtml}
+                        </div>
+
+                        <div class="options-pool">
+                            ${allOptions.map(opt => `
+                                <div class="option-tag" data-value="${opt}">${opt}</div>
+                            `).join('')}
+                        </div>
+
+                        <p class="hint-text">先点击选项，再点击空格填入</p>
+                    `;
+                }
 
                 this.container.innerHTML = html;
                 this.bindEvents();
@@ -363,36 +408,78 @@
             }
 
             bindEvents() {
-                const options = this.container.querySelectorAll('.option-tag');
-                const blanks = this.container.querySelectorAll('.paragraph-blank');
+                const lesson = this.lessons[this.currentLessonIndex];
+                const isLesson4 = lesson.id && lesson.id.startsWith('lesson4_');
 
-                options.forEach(opt => {
-                    opt.addEventListener('click', () => {
-                        if (opt.classList.contains('used')) return;
-                        options.forEach(o => o.classList.remove('selected'));
-                        opt.classList.add('selected');
-                        this.selectedOption = opt;
+                if (isLesson4) {
+                    // 第4课：为每个古诗块绑定独立的事件
+                    const poemSections = this.container.querySelectorAll('.poem-section');
+                    poemSections.forEach(section => {
+                        const options = section.querySelectorAll('.option-tag');
+                        const blanks = section.querySelectorAll('.paragraph-blank');
+                        let selectedOption = null;
+
+                        options.forEach(opt => {
+                            opt.addEventListener('click', () => {
+                                if (opt.classList.contains('used')) return;
+                                options.forEach(o => o.classList.remove('selected'));
+                                opt.classList.add('selected');
+                                selectedOption = opt;
+                            });
+                        });
+
+                        blanks.forEach(blank => {
+                            blank.addEventListener('click', () => {
+                                if (blank.classList.contains('filled')) return;
+                                if (!selectedOption) {
+                                    this.showToast('请先选择一个答案');
+                                    return;
+                                }
+
+                                const value = selectedOption.dataset.value;
+                                blank.textContent = value;
+                                blank.classList.add('filled');
+                                blank.dataset.selected = value;
+
+                                selectedOption.classList.add('used');
+                                selectedOption.classList.remove('selected');
+                                selectedOption = null;
+                            });
+                        });
                     });
-                });
+                } else {
+                    // 普通课文：统一的选项池和空格
+                    const options = this.container.querySelectorAll('.option-tag');
+                    const blanks = this.container.querySelectorAll('.paragraph-blank');
 
-                blanks.forEach(blank => {
-                    blank.addEventListener('click', () => {
-                        if (blank.classList.contains('filled')) return;
-                        if (!this.selectedOption) {
-                            this.showToast('请先选择一个答案');
-                            return;
-                        }
-
-                        const value = this.selectedOption.dataset.value;
-                        blank.textContent = value;
-                        blank.classList.add('filled');
-                        blank.dataset.selected = value;
-
-                        this.selectedOption.classList.add('used');
-                        this.selectedOption.classList.remove('selected');
-                        this.selectedOption = null;
+                    options.forEach(opt => {
+                        opt.addEventListener('click', () => {
+                            if (opt.classList.contains('used')) return;
+                            options.forEach(o => o.classList.remove('selected'));
+                            opt.classList.add('selected');
+                            this.selectedOption = opt;
+                        });
                     });
-                });
+
+                    blanks.forEach(blank => {
+                        blank.addEventListener('click', () => {
+                            if (blank.classList.contains('filled')) return;
+                            if (!this.selectedOption) {
+                                this.showToast('请先选择一个答案');
+                                return;
+                            }
+
+                            const value = this.selectedOption.dataset.value;
+                            blank.textContent = value;
+                            blank.classList.add('filled');
+                            blank.dataset.selected = value;
+
+                            this.selectedOption.classList.add('used');
+                            this.selectedOption.classList.remove('selected');
+                            this.selectedOption = null;
+                        });
+                    });
+                }
 
                 // 课文切换
                 const lessonBtns = this.container.querySelectorAll('.lesson-btn');
