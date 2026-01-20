@@ -428,6 +428,9 @@
                 const buttons = [];
                 const processedPrefixes = new Set(); // 记录已处理的课号前缀
 
+                // 创建带排序信息的按钮数据
+                const buttonData = [];
+
                 this.lessons.forEach((l, i) => {
                     // 检查是否是多部分课文（包含下划线）
                     if (l.id && l.id.includes('_')) {
@@ -442,23 +445,35 @@
                             const isActive = currentLessonId && currentLessonId.startsWith(prefix + '_');
 
                             // 从标题中提取课文名称（如"第4课《古诗三首》"）
-                            // 假设第一部分的标题格式为"第X课《XXX》- YYY"
                             const mainTitle = l.title.split('- ')[0]; // 去掉" - 古诗名"部分
 
-                            buttons.push(`
-                                <button class="lesson-btn ${isActive ? 'active' : ''}" data-index="${i}">${mainTitle}</button>
-                            `);
+                            // 提取课号数字用于排序（如"lesson4" -> 4）
+                            const lessonNum = parseInt(prefix.replace('lesson', ''));
+
+                            buttonData.push({
+                                html: `<button class="lesson-btn ${isActive ? 'active' : ''}" data-index="${i}">${mainTitle}</button>`,
+                                sortKey: lessonNum
+                            });
                         }
                     } else {
                         // 普通课文
                         const displayTitle = l.title.length > 15 ? l.title.slice(0, 15) + '...' : l.title;
-                        buttons.push(`
-                            <button class="lesson-btn ${i === this.currentLessonIndex ? 'active' : ''}" data-index="${i}">${displayTitle}</button>
-                        `);
+
+                        // 提取课号数字用于排序（如"lesson1" -> 1）
+                        const lessonNum = parseInt(l.id.replace('lesson', ''));
+
+                        buttonData.push({
+                            html: `<button class="lesson-btn ${i === this.currentLessonIndex ? 'active' : ''}" data-index="${i}">${displayTitle}</button>`,
+                            sortKey: lessonNum
+                        });
                     }
                 });
 
-                return buttons.join('');
+                // 按课号数字排序
+                buttonData.sort((a, b) => a.sortKey - b.sortKey);
+
+                // 提取排序后的HTML
+                return buttonData.map(item => item.html).join('');
             }
 
             generateDistractors(blanks) {
