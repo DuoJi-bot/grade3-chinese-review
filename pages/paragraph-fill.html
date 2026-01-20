@@ -128,6 +128,35 @@
         .paragraph-item:last-child {
             margin-bottom: 0;
         }
+
+        .poem-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .poem-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .poem-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px dashed var(--border-color);
+        }
+
+        .poem-section .paragraph-area {
+            margin-bottom: 1rem;
+        }
+
+        .poem-section .paragraph-area:last-child {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 
@@ -177,44 +206,94 @@
                 const lesson = this.lessons[this.currentLessonIndex];
                 this.selectedOptions = {}; // 重置选项
 
-                // 收集该课所有段落的blanks，用于生成选项池
-                const allBlanks = [];
-                lesson.paragraphs.forEach(p => {
-                    allBlanks.push(...p.blanks);
-                });
+                // 检查是否是第4课《古诗三首》
+                const isLesson4 = lesson.id && lesson.id.startsWith('lesson4_');
+
+                let lessonsToRender = [];
+                let allBlanks = [];
+
+                if (isLesson4) {
+                    // 第4课特殊处理：找出所有三首古诗
+                    lessonsToRender = this.lessons.filter(l => l.id && l.id.startsWith('lesson4_'));
+                    lessonsToRender.forEach(l => {
+                        l.paragraphs.forEach(p => {
+                            allBlanks.push(...p.blanks);
+                        });
+                    });
+                } else {
+                    // 普通课文：只渲染当前课
+                    lessonsToRender = [lesson];
+                    lesson.paragraphs.forEach(p => {
+                        allBlanks.push(...p.blanks);
+                    });
+                }
 
                 // 生成选项池（包含所有答案和一些干扰项）
                 const distractors = this.generateDistractors(allBlanks);
                 const allOptions = this.shuffle([...allBlanks, ...distractors]);
 
                 // 生成所有段落的HTML
-                const paragraphsHtml = lesson.paragraphs.map((paragraph, pIndex) => {
-                    let text = paragraph.text;
-                    let blankIndex = 0;
+                let paragraphsHtml = '';
 
-                    // 替换括号内容为空格
-                    const displayText = text.replace(/（[^）]+）/g, (match) => {
-                        const answer = match.slice(1, -1);
-                        const uniqueId = `p${pIndex}_b${blankIndex}`;
-                        const html = `<span class="paragraph-blank" data-id="${uniqueId}" data-answer="${answer}">____</span>`;
-                        blankIndex++;
-                        return html;
-                    });
+                if (isLesson4) {
+                    // 第4课：按古诗分块显示
+                    paragraphsHtml = lessonsToRender.map((poemLesson, lessonIdx) => {
+                        const poemTitle = poemLesson.title.split('- ')[1]; // 提取古诗名称
+                        const poemParagraphs = poemLesson.paragraphs.map((paragraph, pIndex) => {
+                            let text = paragraph.text;
+                            let blankIndex = 0;
+                            const uniqueId = `l${lessonIdx}_p${pIndex}`;
 
-                    return `
-                        <div class="paragraph-item">
-                            <div class="paragraph-area">
-                                ${displayText}
+                            // 替换括号内容为空格
+                            const displayText = text.replace(/（[^）]+）/g, (match) => {
+                                const answer = match.slice(1, -1);
+                                const blankId = `${uniqueId}_b${blankIndex}`;
+                                const html = `<span class="paragraph-blank" data-id="${blankId}" data-answer="${answer}">____</span>`;
+                                blankIndex++;
+                                return html;
+                            });
+
+                            return `<div class="paragraph-area">${displayText}</div>`;
+                        }).join('');
+
+                        return `
+                            <div class="poem-section">
+                                <h3 class="poem-title">${poemTitle}</h3>
+                                ${poemParagraphs}
                             </div>
-                        </div>
-                    `;
-                }).join('');
+                        `;
+                    }).join('');
+                } else {
+                    // 普通课文：直接显示所有段落
+                    paragraphsHtml = lesson.paragraphs.map((paragraph, pIndex) => {
+                        let text = paragraph.text;
+                        let blankIndex = 0;
+
+                        // 替换括号内容为空格
+                        const displayText = text.replace(/（[^）]+）/g, (match) => {
+                            const answer = match.slice(1, -1);
+                            const uniqueId = `p${pIndex}_b${blankIndex}`;
+                            const html = `<span class="paragraph-blank" data-id="${uniqueId}" data-answer="${answer}">____</span>`;
+                            blankIndex++;
+                            return html;
+                        });
+
+                        return `
+                            <div class="paragraph-item">
+                                <div class="paragraph-area">
+                                    ${displayText}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 生成课文选择器（合并第4课的三首古诗）
+                const lessonButtons = this.getLessonButtons();
 
                 let html = `
                     <div class="lesson-selector">
-                        ${this.lessons.map((l, i) => `
-                            <button class="lesson-btn ${i === this.currentLessonIndex ? 'active' : ''}" data-index="${i}">${l.title.slice(0, 15)}</button>
-                        `).join('')}
+                        ${lessonButtons}
                     </div>
 
                     <div class="paragraphs-container">
@@ -233,6 +312,41 @@
                 this.container.innerHTML = html;
                 this.bindEvents();
                 this.updateProgress();
+            }
+
+            getLessonButtons() {
+                const buttons = [];
+                const processedLesson4 = false;
+                let skipNext = 0;
+
+                this.lessons.forEach((l, i) => {
+                    if (skipNext > 0) {
+                        skipNext--;
+                        return;
+                    }
+
+                    // 检查是否是第4课的其中一首古诗
+                    if (l.id && l.id.startsWith('lesson4_')) {
+                        // 只在第一次遇到时添加合并按钮
+                        if (l.id === 'lesson4_wangdongting') {
+                            const isActive = this.lessons[this.currentLessonIndex].id &&
+                                           this.lessons[this.currentLessonIndex].id.startsWith('lesson4_');
+                            buttons.push(`
+                                <button class="lesson-btn ${isActive ? 'active' : ''}" data-index="${i}">第4课《古诗三首》</button>
+                            `);
+                            // 跳过后面两首古诗
+                            skipNext = 2;
+                        }
+                    } else {
+                        // 普通课文
+                        const displayTitle = l.title.length > 15 ? l.title.slice(0, 15) + '...' : l.title;
+                        buttons.push(`
+                            <button class="lesson-btn ${i === this.currentLessonIndex ? 'active' : ''}" data-index="${i}">${displayTitle}</button>
+                        `);
+                    }
+                });
+
+                return buttons.join('');
             }
 
             generateDistractors(blanks) {
@@ -306,7 +420,14 @@
 
             updateProgress() {
                 const lesson = this.lessons[this.currentLessonIndex];
-                document.getElementById('progressText').textContent = lesson.title;
+                let displayTitle = lesson.title;
+
+                // 如果是第4课的任一古诗，显示统一标题
+                if (lesson.id && lesson.id.startsWith('lesson4_')) {
+                    displayTitle = '第4课《古诗三首》';
+                }
+
+                document.getElementById('progressText').textContent = displayTitle;
             }
 
             checkAnswers() {
