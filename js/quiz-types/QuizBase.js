@@ -352,25 +352,11 @@ class QuizBase {
     }
 
     /**
-     * 返回上一页
+     * 返回首页
      */
     goBack() {
-        // 检查 document.referrer 是否来自本站首页
-        const referrer = document.referrer;
-        const isFromHomePage = referrer && (
-            referrer.endsWith('/index.html') ||
-            referrer.endsWith('/') ||
-            referrer.includes('/index.html#') ||
-            referrer.match(/\/$/)
-        );
-
-        // 如果是从首页进入的,使用 history.back() 保持滚动位置
-        // 否则直接跳转到首页
-        if (isFromHomePage && window.history.length > 1) {
-            window.history.back();
-        } else {
-            window.location.href = '../index.html';
-        }
+        // 直接跳转到首页，避免history.back()可能导致的问题
+        window.location.href = '../index.html';
     }
 
     /**

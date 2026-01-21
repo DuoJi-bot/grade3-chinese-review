@@ -5,6 +5,8 @@
 class StorageManager {
     constructor() {
         this.prefix = 'g3_chinese_';
+        // 当前版本号 - 每次重大更新时递增
+        this.DATA_VERSION = 2;  // v2: 添加进度追踪系统
         this.init();
     }
 
@@ -12,6 +14,15 @@ class StorageManager {
      * 初始化存储
      */
     init() {
+        // 版本检测：如果版本不匹配，重置所有数据
+        const savedVersion = this.get('data_version');
+        if (savedVersion !== this.DATA_VERSION) {
+            console.log(`🔄 检测到旧版本数据 (v${savedVersion || 1})，正在升级到 v${this.DATA_VERSION}...`);
+            this.resetAll();
+            this.set('data_version', this.DATA_VERSION);
+            console.log('✅ 数据已重置，版本已更新');
+        }
+
         // 确保进度数据存在
         if (!this.get('progress')) {
             this.set('progress', {});

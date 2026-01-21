@@ -206,6 +206,7 @@ function createQuizCard(module) {
 
     const card = document.createElement('div');
     card.className = 'quiz-card fade-in';
+    card.dataset.moduleId = module.id; // 存储模块ID用于刷新进度
 
     // 使用 DOM 方式创建徽章，避免 innerHTML 可能的问题
     const icon = document.createElement('div');
@@ -372,5 +373,43 @@ function init() {
     console.log('🎓 三年级语文复习应用已启动');
 }
 
+/**
+ * 刷新进度显示（不重新渲染卡片，只更新进度数值）
+ */
+function refreshProgress() {
+    // 更新各板块进度徽章
+    document.querySelectorAll('.quiz-card').forEach(card => {
+        const progressBadge = card.querySelector('.quiz-card-progress');
+        if (progressBadge) {
+            const moduleId = card.dataset.moduleId;
+            const totalQuestions = MODULE_TOTAL_QUESTIONS[moduleId] || 0;
+            if (totalQuestions > 0) {
+                const progress = window.storage.getModuleProgress(moduleId, totalQuestions);
+                progressBadge.textContent = progress + '%';
+
+                // 更新样式
+                progressBadge.classList.remove('partial', 'complete');
+                if (progress >= 100) {
+                    progressBadge.classList.add('complete');
+                } else if (progress > 0) {
+                    progressBadge.classList.add('partial');
+                }
+            }
+        }
+    });
+
+    // 更新总统计
+    updateStats();
+}
+
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', init);
+
+// 从其他页面返回时刷新进度（解决浏览器缓存问题）
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        // 页面是从缓存中恢复的（bfcache）
+        refreshProgress();
+    }
+});
+
