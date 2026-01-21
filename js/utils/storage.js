@@ -21,6 +21,12 @@ class StorageManager {
             this.resetAll();
             this.set('data_version', this.DATA_VERSION);
             console.log('✅ 数据已重置，版本已更新');
+            // 提醒用户
+            if (savedVersion) { // 只有非首次访问才提示
+                setTimeout(() => {
+                    alert('系统更新提示：\n\n为了应用最新的进度追踪逻辑，您的本地学习进度已自动重置。\n\n现在的进度数据将更加准确！(v' + this.DATA_VERSION + ')');
+                }, 500);
+            }
         }
 
         // 确保进度数据存在
