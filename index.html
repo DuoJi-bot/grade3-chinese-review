@@ -75,7 +75,14 @@
 
         <!-- 底部 -->
         <footer class="app-footer">
-            <p>🎓 认真复习，期末考试加油！</p>
+            <div class="footer-content">
+                <p class="project-desc">
+                    本项目是一个临时的实验项目，旨在验证“构建一套完整的复习资料快速转化为交互式应用”的可操作性。目的是寻找一套切实可行的方法，通过不断定义新的模块化题型和交互方式，将学生厚重而传统的纸质或电子版复习资料迅速自动转化为一套高度定制化的交互式学习页面，努力保证包含所有内容的同时，让知识更加生动。
+                </p>
+                <p class="project-note">新功能和Bug随时更新，感谢你关注此项目。</p>
+                <div class="footer-divider"></div>
+                <p>🎓 认真复习，期末考试加油！</p>
+            </div>
         </footer>
     </div>
 
@@ -129,9 +136,36 @@
 
         .app-footer {
             text-align: center;
-            padding: 2rem;
+            padding: 3rem 1.5rem;
             color: var(--text-secondary);
             font-size: 0.875rem;
+            background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.02));
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .project-desc {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+            opacity: 0.8;
+            text-align: justify;
+        }
+
+        .project-note {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-bottom: 2rem;
+        }
+
+        .footer-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 1.5rem auto;
+            width: 100px;
+            opacity: 0.5;
         }
 
         @media (max-width: 768px) {
