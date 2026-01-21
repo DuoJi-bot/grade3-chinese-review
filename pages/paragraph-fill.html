@@ -275,14 +275,24 @@
             async loadData() {
                 const data = await this.fetchJson('../data/course_knowledge.json');
                 this.lessons = data.lessons;
+
+                // 设置 this.questions 为 lessons 数组，以便基类正确计算进度
                 this.questions = this.lessons;
+
+                // 自动跳转到第一个未完成的课时
+                const correctLessons = window.storage.getCorrectQuestions(this.moduleId);
+                const firstUnfinishedIndex = this.lessons.findIndex(l => !correctLessons.includes(l.id));
+                if (firstUnfinishedIndex !== -1) {
+                    this.currentLessonIndex = firstUnfinishedIndex;
+                }
+
+                this.render();
             }
 
             // 覆盖初始化方法，确保导航按钮事件只绑定一次
             async init() {
                 try {
                     await this.loadData();
-                    this.render();
                     this.bindNavigationEvents(); // 只在初始化时绑定一次导航按钮事件
                     this.updateProgress();
                 } catch (error) {
@@ -784,9 +794,10 @@
                     }
                 });
 
-                this.correctCount += correct;
+                // this.correctCount += correct; // 移除原先按填空计数的逻辑
 
                 if (correct === blanks.length) {
+                    this.correctCount++; // 按课时计数：全对才+1
                     this.showCorrectFeedback();
                     // 记录答对的课文
                     const lesson = this.lessons[this.currentLessonIndex];

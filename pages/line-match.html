@@ -313,7 +313,7 @@
 
                             if (this.matchedCount === this.totalPairs) {
                                 this.showCorrectFeedback();
-                                this.correctCount += this.totalPairs;
+                                // this.correctCount += this.totalPairs; // 移除按配对计数的逻辑
 
                                 // 将本批次的词条加入已考查列表
                                 this.usedIndices = [...this.usedIndices, ...this.pendingIndices];
@@ -339,6 +339,8 @@
                                     }, 1000);
                                 } else {
                                     this.showToast('🎉 本单元全部词条已考查完成！');
+                                    this.correctCount++; // 按单元计数：完成单元才+1
+
                                     // 标记该单元已完成
                                     window.storage.markQuestionCorrect(this.moduleId, unit.id);
                                     // 刷新页面状态以显示绿色边框

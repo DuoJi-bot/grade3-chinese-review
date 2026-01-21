@@ -6,7 +6,7 @@ class StorageManager {
     constructor() {
         this.prefix = 'g3_chinese_';
         // 当前版本号 - 每次重大更新时递增
-        this.DATA_VERSION = 5;  // v5: 修正搭配题型为单元进度
+        this.DATA_VERSION = 6;  // v6: 修正搭配题型为单元进度
         this.init();
     }
 

@@ -363,9 +363,10 @@
                     }
                 });
 
-                this.correctCount += correct;
+                // this.correctCount += correct; // 移除原先按填空计数的逻辑
 
                 if (correct === total) {
+                    this.correctCount++; // 按题组计数：全对才+1
                     this.showCorrectFeedback();
                     // 记录答对的题目组
                     window.storage.markQuestionCorrect(this.moduleId, this.currentGroupIndex);
