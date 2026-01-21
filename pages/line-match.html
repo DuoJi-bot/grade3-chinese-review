@@ -34,6 +34,17 @@
             color: white;
         }
 
+        .unit-tab.completed {
+            border-color: var(--success-color);
+            border-width: 2px;
+            box-shadow: 0 0 0 1px var(--success-color);
+        }
+
+        .unit-tab.completed:not(.active)::after {
+            content: ' ✓';
+            color: var(--success-color);
+        }
+
         .match-container {
             display: flex;
             justify-content: space-between;
@@ -224,9 +235,10 @@
 
                 let html = `
                     <div class="unit-tabs">
-                        ${this.units.map((u, i) => `
-                            <button class="unit-tab ${i === this.currentUnitIndex ? 'active' : ''}" data-index="${i}">${u.title}</button>
-                        `).join('')}
+                        ${this.units.map((u, i) => {
+                    const isCompleted = window.storage.isQuestionCorrect(this.moduleId, u.id);
+                    return `<button class="unit-tab ${i === this.currentUnitIndex ? 'active' : ''} ${isCompleted ? 'completed' : ''}" data-index="${i}">${u.title}</button>`;
+                }).join('')}
                     </div>
 
                     <div class="game-info">
@@ -306,14 +318,10 @@
                                 // 将本批次的词条加入已考查列表
                                 this.usedIndices = [...this.usedIndices, ...this.pendingIndices];
 
-                                // 获取当前单元数据并记录到统一的storage系统
+                                // 获取当前单元数据
                                 const unit = this.units[this.currentUnitIndex];
                                 const collocations = unit.collocations || [];
-                                this.pendingIndices.forEach(idx => {
-                                    const coll = collocations[idx];
-                                    const collKey = `${unit.id}_${coll.modifier}_${coll.noun}`;
-                                    window.storage.markQuestionCorrect(this.moduleId, collKey);
-                                });
+                                // 不再记录单个词条的进度，改为记录整单元进度
 
                                 // 更新总进度显示
                                 const completedCount = this.usedIndices.length;
@@ -331,6 +339,10 @@
                                     }, 1000);
                                 } else {
                                     this.showToast('🎉 本单元全部词条已考查完成！');
+                                    // 标记该单元已完成
+                                    window.storage.markQuestionCorrect(this.moduleId, unit.id);
+                                    // 刷新页面状态以显示绿色边框
+                                    this.render();
                                 }
                             }
                         } else {
@@ -383,7 +395,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const quiz = new LineMatchQuiz({
-                moduleId: 'line-match'
+                moduleId: 'collocations' // 匹配main.js配置
             });
             quiz.init();
         });

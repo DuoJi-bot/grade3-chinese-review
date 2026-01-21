@@ -185,15 +185,15 @@ const MODULE_TOTAL_QUESTIONS = {
     'action-words': 8,          // 动作词语
     'season-words': 16,         // 四季词语分类
     'proverbs-treating': 4,     // 待人名言
-    'proverbs-unity': 4,        // 团结协作谚语
-    'proverbs-perseverance': 4, // 坚韧名句
-    'mu-radical': 8,            // 带"目"的字
-    'character-traits': 10,     // 人物品质
-    'lesson-morals': 10,        // 课文道理
-    'course-knowledge': 8,      // 课文知识点
+    'proverbs-unity': 3,        // 团结协作谚语（实际3条）
+    'proverbs-perseverance': 3, // 坚韧名句（实际3条）
+    'mu-radical': 7,            // 带"目"的字（实际7个词）
+    'character-traits': 2,      // 人物品质（共2组）
+    'lesson-morals': 2,         // 课文道理（共2组）
+    'course-knowledge': 26,        // 课文知识点（按课时计，共26课时）
     'synonyms': 200,            // 近反义词配对（估算总对数）
     'polyphones': 32,           // 多音字辨析
-    'collocations': 100         // 修饰词搭配（估算）
+    'collocations': 8           // 修饰词搭配（共8个单元）
 };
 
 /**
@@ -335,7 +335,7 @@ function renderCategories() {
 function updateStats() {
     const stats = window.storage.getStats();
 
-    document.getElementById('totalQuestions').textContent = stats.totalQuestions;
+    document.getElementById('totalQuestions').textContent = window.storage.getTotalCompletedCount();
 
     // 计算总完成率
     const modulesConfig = Object.entries(MODULE_TOTAL_QUESTIONS).map(([id, total]) => ({

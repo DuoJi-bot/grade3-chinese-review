@@ -237,7 +237,7 @@
                     
                     <div class="options-pool">
                         ${shuffledAnswers.map((item, i) => `
-                            <div class="option-tag" data-answer="${item.answer}" data-original-index="${item.index}">${item.answer}</div>
+                            <div class="option-tag" data-answer="${item.answer}" data-original-index="${item.index}" data-opt-id="${i}">${item.answer}</div>
                         `).join('')}
                     </div>
                 `;
@@ -276,9 +276,12 @@
                         }
 
                         const answer = selectedOption.dataset.answer;
+                        const optId = selectedOption.dataset.optId; // 获取选项唯一ID
+
                         blank.textContent = answer;
                         blank.classList.add('filled');
                         blank.dataset.selected = answer;
+                        blank.dataset.filledOptId = optId; // 记录使用的选项ID
 
                         selectedOption.classList.add('used');
                         selectedOption.classList.remove('selected');
@@ -302,12 +305,12 @@
 
                 blanks.forEach(blank => {
                     if (blank.classList.contains('filled')) {
-                        const filledAnswer = blank.dataset.selected;
+                        const filledOptId = blank.dataset.filledOptId;
 
-                        // 恢复选项池中对应的选项
+                        // 恢复选项池中对应的选项（使用唯一ID查找）
                         const options = this.container.querySelectorAll('.option-tag');
                         options.forEach(opt => {
-                            if (opt.dataset.answer === filledAnswer && opt.dataset.originalIndex === itemIndex) {
+                            if (opt.dataset.optId === filledOptId) {
                                 opt.classList.remove('used');
                             }
                         });
@@ -316,6 +319,7 @@
                         blank.textContent = '';
                         blank.classList.remove('filled', 'correct', 'wrong');
                         delete blank.dataset.selected;
+                        delete blank.dataset.filledOptId;
                     }
                 });
 

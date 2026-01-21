@@ -35,6 +35,17 @@
             color: white;
         }
 
+        .lesson-btn.completed {
+            border-color: var(--success-color);
+            border-width: 2px;
+            box-shadow: 0 0 0 1px var(--success-color);
+        }
+
+        .lesson-btn.completed:not(.active)::after {
+            content: ' ✓';
+            color: var(--success-color);
+        }
+
         .paragraph-area {
             padding: 1.5rem;
             background: var(--bg-color);
@@ -470,6 +481,9 @@
                 const buttons = [];
                 const processedPrefixes = new Set(); // 记录已处理的课号前缀
 
+                // 获取已完成的课时列表
+                const completedLessons = window.storage.getCorrectQuestions(this.moduleId);
+
                 // 创建带排序信息的按钮数据
                 const buttonData = [];
 
@@ -486,6 +500,9 @@
                             const currentLessonId = this.lessons[this.currentLessonIndex].id;
                             const isActive = currentLessonId && currentLessonId.startsWith(prefix + '_');
 
+                            // 检查该课时是否已完成
+                            const isCompleted = completedLessons.includes(l.id);
+
                             // 从标题中提取课文名称（如"第4课《古诗三首》"）
                             const mainTitle = l.title.split('- ')[0]; // 去掉" - 古诗名"部分
 
@@ -493,7 +510,7 @@
                             const lessonNum = parseInt(prefix.replace('lesson', ''));
 
                             buttonData.push({
-                                html: `<button class="lesson-btn ${isActive ? 'active' : ''}" data-index="${i}">${mainTitle}</button>`,
+                                html: `<button class="lesson-btn ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}" data-index="${i}">${mainTitle}</button>`,
                                 sortKey: lessonNum
                             });
                         }
@@ -501,11 +518,14 @@
                         // 普通课文
                         const displayTitle = l.title.length > 15 ? l.title.slice(0, 15) + '...' : l.title;
 
+                        // 检查该课时是否已完成
+                        const isCompleted = completedLessons.includes(l.id);
+
                         // 提取课号数字用于排序（如"lesson1" -> 1）
                         const lessonNum = parseInt(l.id.replace('lesson', ''));
 
                         buttonData.push({
-                            html: `<button class="lesson-btn ${i === this.currentLessonIndex ? 'active' : ''}" data-index="${i}">${displayTitle}</button>`,
+                            html: `<button class="lesson-btn ${i === this.currentLessonIndex ? 'active' : ''} ${isCompleted ? 'completed' : ''}" data-index="${i}">${displayTitle}</button>`,
                             sortKey: lessonNum
                         });
                     }
@@ -780,7 +800,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const quiz = new ParagraphFillQuiz({
-                moduleId: 'paragraph-fill'
+                moduleId: 'course-knowledge'  // 匹配main.js中的MODULE_TOTAL_QUESTIONS配置
             });
             quiz.init();
         });

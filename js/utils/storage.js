@@ -6,7 +6,7 @@ class StorageManager {
     constructor() {
         this.prefix = 'g3_chinese_';
         // 当前版本号 - 每次重大更新时递增
-        this.DATA_VERSION = 2;  // v2: 添加进度追踪系统
+        this.DATA_VERSION = 5;  // v5: 修正搭配题型为单元进度
         this.init();
     }
 
@@ -245,6 +245,16 @@ class StorageManager {
 
         if (totalQuestions === 0) return 0;
         return Math.round((totalCorrect / totalQuestions) * 100);
+    }
+
+    /**
+     * 获取总已完成题目/项目数
+     */
+    getTotalCompletedCount() {
+        const correctQuestions = this.get('correct_questions', {});
+        return Object.values(correctQuestions).reduce((total, questions) => {
+            return total + (Array.isArray(questions) ? questions.length : 0);
+        }, 0);
     }
 
     /**
