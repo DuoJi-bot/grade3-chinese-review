@@ -226,6 +226,8 @@ function createQuizCard(module) {
     card.appendChild(desc);
 
     // 可追踪模块显示进度百分比
+    let showCompletedBadge = false;
+
     if (isTrackable && totalQuestions > 0) {
         const progress = window.storage.getModuleProgress(module.id, totalQuestions);
         const progressBadge = document.createElement('span');
@@ -235,14 +237,20 @@ function createQuizCard(module) {
         // 根据进度设置颜色
         if (progress >= 100) {
             progressBadge.classList.add('complete');
+            showCompletedBadge = true; // 进度100%才显示已完成
         } else if (progress > 0) {
             progressBadge.classList.add('partial');
         }
 
         card.appendChild(progressBadge);
+    } else {
+        // 不追踪进度的模块，使用存储的完成状态
+        if (isCompleted) {
+            showCompletedBadge = true;
+        }
     }
 
-    if (isCompleted) {
+    if (showCompletedBadge) {
         const badge = document.createElement('span');
         badge.className = 'quiz-card-badge';
         badge.textContent = '✓ 已完成';
@@ -379,21 +387,51 @@ function init() {
 function refreshProgress() {
     // 更新各板块进度徽章
     document.querySelectorAll('.quiz-card').forEach(card => {
-        const progressBadge = card.querySelector('.quiz-card-progress');
-        if (progressBadge) {
-            const moduleId = card.dataset.moduleId;
-            const totalQuestions = MODULE_TOTAL_QUESTIONS[moduleId] || 0;
-            if (totalQuestions > 0) {
-                const progress = window.storage.getModuleProgress(moduleId, totalQuestions);
-                progressBadge.textContent = progress + '%';
+        const moduleId = card.dataset.moduleId;
+        const totalQuestions = MODULE_TOTAL_QUESTIONS[moduleId] || 0;
+        const isTrackable = totalQuestions > 0;
 
-                // 更新样式
+        // 1. 更新百分比徽章
+        let progressBadge = card.querySelector('.quiz-card-progress');
+        let progress = 0;
+
+        if (isTrackable) {
+            progress = window.storage.getModuleProgress(moduleId, totalQuestions);
+
+            // 如果徽章不存在但应该追踪，且有点进度（可选），则创建之，或者在createQuizCard时已创建
+            // 此处假设createQuizCard已创建结构，或者如果需要动态添加
+            if (progressBadge) {
+                progressBadge.textContent = progress + '%';
                 progressBadge.classList.remove('partial', 'complete');
                 if (progress >= 100) {
                     progressBadge.classList.add('complete');
                 } else if (progress > 0) {
                     progressBadge.classList.add('partial');
                 }
+            }
+        }
+
+        // 2. 更新"已完成"徽章
+        let completedBadge = card.querySelector('.quiz-card-badge');
+        let shouldShowCompleted = false;
+
+        if (isTrackable) {
+            shouldShowCompleted = (progress >= 100);
+        } else {
+            // 不可追踪模块（自由练习），检查storage状态
+            shouldShowCompleted = window.storage.isCompleted(moduleId);
+        }
+
+        if (shouldShowCompleted) {
+            if (!completedBadge) {
+                completedBadge = document.createElement('span');
+                completedBadge.className = 'quiz-card-badge';
+                completedBadge.textContent = '✓ 已完成';
+                card.appendChild(completedBadge);
+            }
+        } else {
+            if (completedBadge) {
+                completedBadge.remove();
             }
         }
     });
