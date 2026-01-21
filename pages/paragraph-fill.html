@@ -768,6 +768,9 @@
 
                 if (correct === blanks.length) {
                     this.showCorrectFeedback();
+                    // 记录答对的课文
+                    const lesson = this.lessons[this.currentLessonIndex];
+                    window.storage.markQuestionCorrect(this.moduleId, lesson.id);
                     this.showToast('🎉 全部正确！');
                 } else {
                     this.showToast(`正确 ${correct}/${blanks.length}`);

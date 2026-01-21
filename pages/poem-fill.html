@@ -151,7 +151,19 @@
                 const section = data.sections.find(s => s.id === dataKey);
                 if (section) {
                     document.getElementById('quizTitle').textContent = section.title;
-                    this.questions = section.items;
+
+                    // 获取已答对的题目列表
+                    const correctQuestions = window.storage.getCorrectQuestions(this.moduleId);
+
+                    // 过滤已答对的题目（用索引作为标识）
+                    const allQuestions = section.items.map((item, idx) => ({ ...item, _index: idx }));
+                    this.questions = allQuestions.filter(q => !correctQuestions.includes(String(q._index)));
+
+                    // 如果所有题目都已答对，重新加载所有题目供复习
+                    if (this.questions.length === 0) {
+                        this.questions = allQuestions;
+                        this.allCompleted = true;
+                    }
                 }
             }
 
@@ -288,7 +300,8 @@
 
                     if (allCorrect) {
                         this.showCorrectFeedback();
-                        // 注意：showCorrectFeedback() 已经增加了 correctCount，不需要再手动增加
+                        // 记录答对的题目
+                        window.storage.markQuestionCorrect(this.moduleId, this.currentProverb._index);
                     } else {
                         this.showWrongFeedback();
                     }

@@ -502,6 +502,15 @@
                                 const currentUsed = this.getUsedPairIndices();
                                 const updatedUsed = [...currentUsed, ...this.pendingPairIndices];
                                 this.setUsedPairIndices(updatedUsed);
+
+                                // 同时记录到统一的storage系统
+                                const unit = this.units[this.currentUnit];
+                                const allPairs = this.matchType === 'synonyms' ? unit.synonyms : unit.antonyms;
+                                this.pendingPairIndices.forEach(idx => {
+                                    const pair = allPairs[idx];
+                                    const pairKey = `${unit.id}_${this.matchType}_${pair[0]}_${pair[1]}`;
+                                    window.storage.markQuestionCorrect(this.moduleId, pairKey);
+                                });
                             }
 
                             // 更新进度显示（本轮已完成）

@@ -306,9 +306,14 @@
                                 // 将本批次的词条加入已考查列表
                                 this.usedIndices = [...this.usedIndices, ...this.pendingIndices];
 
-                                // 获取当前单元数据
+                                // 获取当前单元数据并记录到统一的storage系统
                                 const unit = this.units[this.currentUnitIndex];
                                 const collocations = unit.collocations || [];
+                                this.pendingIndices.forEach(idx => {
+                                    const coll = collocations[idx];
+                                    const collKey = `${unit.id}_${coll.modifier}_${coll.noun}`;
+                                    window.storage.markQuestionCorrect(this.moduleId, collKey);
+                                });
 
                                 // 更新总进度显示
                                 const completedCount = this.usedIndices.length;

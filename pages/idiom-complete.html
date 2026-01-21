@@ -66,11 +66,23 @@
                 const section = data.sections.find(s => s.id === dataKey);
 
                 if (section && section.items) {
-                    this.questions = section.items.map(item => ({
+                    // 获取已答对的题目列表
+                    const correctQuestions = window.storage.getCorrectQuestions(this.moduleId);
+
+                    // 过滤已答对的题目
+                    const allQuestions = section.items.map(item => ({
                         idiom: item.idiom,
                         pinyin: item.pinyin,
                         example: item.example || ''
                     }));
+
+                    this.questions = allQuestions.filter(q => !correctQuestions.includes(q.idiom));
+
+                    // 如果所有题目都已答对，显示全部完成
+                    if (this.questions.length === 0) {
+                        this.questions = allQuestions; // 重新加载所有题目供复习
+                        this.allCompleted = true;
+                    }
 
                     // 更新标题
                     document.getElementById('quizTitle').textContent = section.title;
@@ -234,6 +246,9 @@
                 if (allCorrect) {
                     this.showCorrectFeedback();
                     this.correctCount++;
+
+                    // 记录答对的题目
+                    window.storage.markQuestionCorrect(this.moduleId, this.currentIdiom);
 
                     // 朗读成语
                     setTimeout(() => {

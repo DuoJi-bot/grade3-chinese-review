@@ -155,8 +155,11 @@
             async loadData() {
                 const data = await this.fetchJson('../data/polyphones.json');
 
+                // 获取已答对的题目列表
+                const correctQuestions = window.storage.getCorrectQuestions(this.moduleId);
+
                 // 为每个多音字生成一道题（随机选择其中一个读音）
-                this.questions = [];
+                const allQuestions = [];
                 data.polyphones.forEach(poly => {
                     // 随机选择一个读音
                     const readingIndex = Math.floor(Math.random() * poly.readings.length);
@@ -164,7 +167,7 @@
                     // 使用该读音下的第一个词作为考察目标
                     const word = reading.words[0];
 
-                    this.questions.push({
+                    allQuestions.push({
                         character: poly.character,
                         targetWord: word,
                         targetPinyin: reading.pinyin,
@@ -172,6 +175,15 @@
                         allReadings: poly.readings
                     });
                 });
+
+                // 过滤已答对的题目（用字符作为标识）
+                this.questions = allQuestions.filter(q => !correctQuestions.includes(q.character));
+                
+                // 如果所有题目都已答对，重新加载所有题目供复习
+                if (this.questions.length === 0) {
+                    this.questions = allQuestions;
+                    this.allCompleted = true;
+                }
 
                 // 打乱题目顺序
                 this.questions = this.shuffle(this.questions);
@@ -278,6 +290,9 @@
                     optEl.classList.add('correct');
                     this.showCorrectFeedback();
                     this.correctCount++;
+                    
+                    // 记录答对的题目（用字符作为标识）
+                    window.storage.markQuestionCorrect(this.moduleId, q.character);
 
                     // 朗读
                     this.speak(q.targetWord);

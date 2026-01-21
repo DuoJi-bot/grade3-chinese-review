@@ -342,6 +342,10 @@
 
                 if (correctCount === totalCount && totalCount === this.allWords.length) {
                     this.showCorrectFeedback();
+                    // 记录答对的题目（所有词语）
+                    this.allWords.forEach(w => {
+                        window.storage.markQuestionCorrect(this.moduleId, w.word);
+                    });
                     setTimeout(() => this.showComplete(), 1000);
                 } else if (totalCount === this.allWords.length) {
                     this.showToast(`正确 ${correctCount}/${totalCount}，再试一次吧！`);

@@ -169,6 +169,73 @@ class StorageManager {
         return progress?.completed === true;
     }
 
+    // ==================== 题目级别进度追踪 ====================
+
+    /**
+     * 标记某题已答对
+     * @param {string} moduleId - 模块ID
+     * @param {string} questionId - 题目标识
+     */
+    markQuestionCorrect(moduleId, questionId) {
+        const correctQuestions = this.get('correct_questions', {});
+        if (!correctQuestions[moduleId]) {
+            correctQuestions[moduleId] = [];
+        }
+        const qid = String(questionId);
+        if (!correctQuestions[moduleId].includes(qid)) {
+            correctQuestions[moduleId].push(qid);
+            this.set('correct_questions', correctQuestions);
+        }
+    }
+
+    /**
+     * 检查某题是否已答对
+     * @param {string} moduleId - 模块ID
+     * @param {string} questionId - 题目标识
+     */
+    isQuestionCorrect(moduleId, questionId) {
+        const correctQuestions = this.get('correct_questions', {});
+        const qid = String(questionId);
+        return correctQuestions[moduleId]?.includes(qid) || false;
+    }
+
+    /**
+     * 获取某板块已答对题目列表
+     * @param {string} moduleId - 模块ID
+     */
+    getCorrectQuestions(moduleId) {
+        const correctQuestions = this.get('correct_questions', {});
+        return correctQuestions[moduleId] || [];
+    }
+
+    /**
+     * 计算板块完成百分比
+     * @param {string} moduleId - 模块ID
+     * @param {number} totalQuestions - 板块总题目数
+     */
+    getModuleProgress(moduleId, totalQuestions) {
+        if (totalQuestions === 0) return 0;
+        const correctCount = this.getCorrectQuestions(moduleId).length;
+        return Math.round((correctCount / totalQuestions) * 100);
+    }
+
+    /**
+     * 计算总完成率
+     * @param {Array} modulesConfig - 模块配置数组 [{id, totalQuestions}, ...]
+     */
+    getTotalProgress(modulesConfig) {
+        let totalQuestions = 0;
+        let totalCorrect = 0;
+
+        modulesConfig.forEach(config => {
+            totalQuestions += config.totalQuestions;
+            totalCorrect += this.getCorrectQuestions(config.id).length;
+        });
+
+        if (totalQuestions === 0) return 0;
+        return Math.round((totalCorrect / totalQuestions) * 100);
+    }
+
     /**
      * 重置所有进度
      */
@@ -180,6 +247,8 @@ class StorageManager {
             totalTime: 0,
             lastStudyDate: null
         });
+        // 清除题目级别进度
+        this.set('correct_questions', {});
     }
 
     /**

@@ -171,17 +171,34 @@
                 if (section) {
                     document.getElementById('quizTitle').textContent = section.title;
 
+                    // 获取已答对的题目列表
+                    const correctQuestions = window.storage.getCorrectQuestions(this.moduleId);
+
                     // 分组显示，每组5题（10题分成2页）
                     const exercises = section.exercises || [];
-                    this.questions = [];
+                    const allGroups = [];
                     for (let i = 0; i < exercises.length; i += 5) {
-                        this.questions.push(exercises.slice(i, i + 5));
+                        allGroups.push({
+                            items: exercises.slice(i, i + 5),
+                            _groupIndex: Math.floor(i / 5)
+                        });
+                    }
+
+                    // 过滤已答对的题目组
+                    this.questions = allGroups.filter(g => !correctQuestions.includes(String(g._groupIndex)));
+
+                    // 如果所有题目都已答对，重新加载所有题目供复习
+                    if (this.questions.length === 0) {
+                        this.questions = allGroups;
+                        this.allCompleted = true;
                     }
                 }
             }
 
             render() {
-                const group = this.questions[this.currentIndex];
+                const groupData = this.questions[this.currentIndex];
+                const group = groupData.items || groupData; // 兼容新旧数据结构
+                this.currentGroupIndex = groupData._groupIndex !== undefined ? groupData._groupIndex : this.currentIndex;
                 this.selections = {};
 
                 // 收集所有答案
@@ -346,6 +363,9 @@
 
                 if (correct === total) {
                     this.showCorrectFeedback();
+                    // 记录答对的题目组
+                    window.storage.markQuestionCorrect(this.moduleId, this.currentGroupIndex);
+
                     setTimeout(() => {
                         if (this.currentIndex < this.questions.length - 1) {
                             this.nextQuestion();

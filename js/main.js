@@ -170,11 +170,39 @@ const quizModules = {
     ]
 };
 
+// 不追踪进度的模块ID列表（自由练习板块）
+const FREE_PRACTICE_MODULES = [
+    'word-patterns',        // 词语范式朗读
+    'poems',                // 古诗背诵
+    'writing-examples',     // 小练笔示例
+    'oral-communication'    // 口语交际
+];
+
+// 各模块题目总数配置（需要根据实际数据文件统计）
+const MODULE_TOTAL_QUESTIONS = {
+    'idiom-body': 12,           // 身体部位成语
+    'idiom-number': 9,          // 数字成语
+    'action-words': 8,          // 动作词语
+    'season-words': 16,         // 四季词语分类
+    'proverbs-treating': 4,     // 待人名言
+    'proverbs-unity': 4,        // 团结协作谚语
+    'proverbs-perseverance': 4, // 坚韧名句
+    'mu-radical': 8,            // 带"目"的字
+    'character-traits': 10,     // 人物品质
+    'lesson-morals': 10,        // 课文道理
+    'course-knowledge': 8,      // 课文知识点
+    'synonyms': 200,            // 近反义词配对（估算总对数）
+    'polyphones': 32,           // 多音字辨析
+    'collocations': 100         // 修饰词搭配（估算）
+};
+
 /**
  * 创建练习卡片
  */
 function createQuizCard(module) {
     const isCompleted = window.storage.isCompleted(module.id);
+    const isTrackable = !FREE_PRACTICE_MODULES.includes(module.id);
+    const totalQuestions = MODULE_TOTAL_QUESTIONS[module.id] || 0;
 
     const card = document.createElement('div');
     card.className = 'quiz-card fade-in';
@@ -195,6 +223,23 @@ function createQuizCard(module) {
     card.appendChild(icon);
     card.appendChild(title);
     card.appendChild(desc);
+
+    // 可追踪模块显示进度百分比
+    if (isTrackable && totalQuestions > 0) {
+        const progress = window.storage.getModuleProgress(module.id, totalQuestions);
+        const progressBadge = document.createElement('span');
+        progressBadge.className = 'quiz-card-progress';
+        progressBadge.textContent = progress + '%';
+
+        // 根据进度设置颜色
+        if (progress >= 100) {
+            progressBadge.classList.add('complete');
+        } else if (progress > 0) {
+            progressBadge.classList.add('partial');
+        }
+
+        card.appendChild(progressBadge);
+    }
 
     if (isCompleted) {
         const badge = document.createElement('span');
@@ -290,7 +335,14 @@ function updateStats() {
     const stats = window.storage.getStats();
 
     document.getElementById('totalQuestions').textContent = stats.totalQuestions;
-    document.getElementById('accuracy').textContent = window.storage.getAccuracy() + '%';
+
+    // 计算总完成率
+    const modulesConfig = Object.entries(MODULE_TOTAL_QUESTIONS).map(([id, total]) => ({
+        id: id,
+        totalQuestions: total
+    }));
+    const totalProgress = window.storage.getTotalProgress(modulesConfig);
+    document.getElementById('accuracy').textContent = totalProgress + '%';
 
     if (stats.lastStudyDate) {
         const date = new Date(stats.lastStudyDate);

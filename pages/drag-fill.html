@@ -281,6 +281,10 @@
 
                 if (correct === blanks.length) {
                     this.showCorrectFeedback();
+                    // 记录答对的题目（这个板块是一个整体，记录所有词语）
+                    this.section.words.forEach((w, i) => {
+                        window.storage.markQuestionCorrect(this.moduleId, w.word);
+                    });
                     setTimeout(() => this.showComplete(), 1000);
                 } else {
                     this.showToast(`正确 ${correct}/${blanks.length}`);
