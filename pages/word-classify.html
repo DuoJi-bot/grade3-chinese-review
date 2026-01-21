@@ -183,8 +183,8 @@
                         });
                     });
 
-                    // 只有一道题
-                    this.questions = [{ type: 'classify' }];
+                    // 只有一道题 -> 改为：每个词语视为一道题
+                    this.questions = this.allWords;
                 }
             }
 

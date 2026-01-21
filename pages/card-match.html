@@ -494,7 +494,7 @@
 
                         if (this.matchedPairs === this.currentPairsCount) {
                             this.showCorrectFeedback();
-                            this.correctCount += this.currentPairsCount;
+                            // this.correctCount += this.currentPairsCount; // 移除按配对计数
 
                             // 如果不是重测模式，保存进度
                             if (!this.isReviewMode) {
@@ -504,6 +504,7 @@
                                 this.setUsedPairIndices(updatedUsed);
 
                                 // 同时记录到统一的storage系统
+
                                 const unit = this.units[this.currentUnit];
                                 const allPairs = this.matchType === 'synonyms' ? unit.synonyms : unit.antonyms;
                                 this.pendingPairIndices.forEach(idx => {
@@ -527,6 +528,10 @@
                             if (isCompleted) {
                                 progressCount.style.color = 'var(--success-color)';
                                 progressCount.style.fontWeight = '700';
+
+                                if (!this.isReviewMode) {
+                                    this.correctCount++; // 按单元计数
+                                }
                             }
 
                             // 检查是否还有未考查的词

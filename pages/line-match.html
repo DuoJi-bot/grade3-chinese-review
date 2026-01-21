@@ -171,6 +171,16 @@
                     return numA - numB;
                 });
                 this.questions = this.units;
+
+                // 自动定位到第一个未完成的单元
+                const correctUnits = window.storage.getCorrectQuestions(this.moduleId);
+                const firstUnfinishedIndex = this.units.findIndex(u => !correctUnits.includes(u.id));
+                if (firstUnfinishedIndex !== -1) {
+                    this.currentUnitIndex = firstUnfinishedIndex;
+                } else if (correctUnits.length === this.units.length && this.units.length > 0) {
+                    // 如果全部完成，留在最后一个单元或者回到第一个（这里选择回到第一个供复习）
+                    this.currentUnitIndex = 0;
+                }
             }
 
             // 覆盖初始化方法，确保导航按钮事件只绑定一次
@@ -344,7 +354,24 @@
                                     // 标记该单元已完成
                                     window.storage.markQuestionCorrect(this.moduleId, unit.id);
                                     // 刷新页面状态以显示绿色边框
+                                    // 刷新页面状态以显示绿色边框
                                     this.render();
+
+                                    // 自动跳转到下一单元
+                                    if (this.currentUnitIndex < this.units.length - 1) {
+                                        this.showToast('🎉 本单元完成！即将进入下一单元...');
+                                        setTimeout(() => {
+                                            this.currentUnitIndex++;
+                                            this.usedIndices = []; // 切换单元时重置进度
+                                            this.batchIndex = 0;
+                                            this.render();
+                                        }, 1500);
+                                    } else {
+                                        // 最后一个单元，显示完成页面
+                                        setTimeout(() => {
+                                            this.showComplete();
+                                        }, 1500);
+                                    }
                                 }
                             }
                         } else {

@@ -302,6 +302,7 @@
 
                     if (allCorrect) {
                         this.showCorrectFeedback();
+                        this.correctCount++; // 增加正确计数
                         // 记录答对的题目
                         window.storage.markQuestionCorrect(this.moduleId, this.currentProverb._index);
                     } else {

@@ -174,7 +174,8 @@
                 const data = await this.fetchJson('../data/drag_fill.json');
                 this.section = data.sections[0]; // 目前只有一个section
                 document.getElementById('quizTitle').textContent = this.section.title;
-                this.questions = [this.section]; // 作为一道大题
+                // 将每个词语视为一道题，与 main.js 中的题目总数(7)对应
+                this.questions = this.section.words;
             }
 
             render() {

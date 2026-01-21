@@ -802,7 +802,22 @@
                     // 记录答对的课文
                     const lesson = this.lessons[this.currentLessonIndex];
                     window.storage.markQuestionCorrect(this.moduleId, lesson.id);
-                    this.showToast('🎉 全部正确！');
+
+                    // 重新渲染以显示绿色边框
+                    this.render();
+
+                    // 自动跳转到下一课
+                    if (this.currentLessonIndex < this.lessons.length - 1) {
+                        this.showToast('🎉 本课完成！即将进入下一课...');
+                        setTimeout(() => {
+                            this.currentLessonIndex++;
+                            this.render();
+                        }, 1500);
+                    } else {
+                        setTimeout(() => {
+                            this.showComplete();
+                        }, 1500);
+                    }
                 } else {
                     this.showToast(`正确 ${correct}/${blanks.length}`);
                 }
