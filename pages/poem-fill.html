@@ -278,8 +278,10 @@
 
                 if (selected === correct) {
                     blank.classList.add('correct');
+                    blank.dataset.isCorrect = 'true';  // 添加正确标记
                 } else {
                     blank.classList.add('wrong');
+                    blank.dataset.isCorrect = 'false';  // 添加错误标记
                     // 显示正确答案
                     setTimeout(() => {
                         blank.textContent = correct;
@@ -294,9 +296,9 @@
                     // 所有填空已完成
                     this.answered = true;
 
-                    // 检查是否全部正确
+                    // 检查是否全部正确（使用data属性判断）
                     const allBlanks = this.container.querySelectorAll('.proverb-blank');
-                    const allCorrect = Array.from(allBlanks).every(b => b.classList.contains('correct') && !b.classList.contains('wrong-answer'));
+                    const allCorrect = Array.from(allBlanks).every(b => b.dataset.isCorrect === 'true');
 
                     if (allCorrect) {
                         this.showCorrectFeedback();
