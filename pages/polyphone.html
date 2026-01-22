@@ -178,7 +178,7 @@
 
                 // 过滤已答对的题目（用字符作为标识）
                 this.questions = allQuestions.filter(q => !correctQuestions.includes(q.character));
-                
+
                 // 如果所有题目都已答对，重新加载所有题目供复习
                 if (this.questions.length === 0) {
                     this.questions = allQuestions;
@@ -289,8 +289,7 @@
                 if (isCorrect) {
                     optEl.classList.add('correct');
                     this.showCorrectFeedback();
-                    this.correctCount++;
-                    
+
                     // 记录答对的题目（用字符作为标识）
                     window.storage.markQuestionCorrect(this.moduleId, q.character);
 

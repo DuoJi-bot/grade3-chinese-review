@@ -229,7 +229,6 @@
                     return `
                         <div class="sentence-item" data-item-index="${idx}">
                             ${sentence}
-                            <button class="reset-btn" data-reset-index="${idx}">🔄 重置</button>
                         </div>
                     `;
                 }).join('')}
@@ -252,7 +251,6 @@
                 // 只绑定选项和空格点击事件（每次render需要重新绑定）
                 const options = this.container.querySelectorAll('.option-tag');
                 const blanks = this.container.querySelectorAll('.sentence-blank');
-                const resetBtns = this.container.querySelectorAll('.reset-btn');
 
                 let selectedOption = null;
 
@@ -269,6 +267,24 @@
 
                 blanks.forEach(blank => {
                     blank.addEventListener('click', () => {
+                        // 如果已填入且未检查，点击可撤回
+                        if (blank.classList.contains('filled') && !blank.classList.contains('correct') && !blank.classList.contains('wrong')) {
+                            const filledOptId = blank.dataset.filledOptId;
+                            // 恢复选项池中对应的选项
+                            options.forEach(opt => {
+                                if (opt.dataset.optId === filledOptId) {
+                                    opt.classList.remove('used');
+                                }
+                            });
+                            // 清空空格
+                            blank.textContent = '';
+                            blank.classList.remove('filled');
+                            delete blank.dataset.selected;
+                            delete blank.dataset.filledOptId;
+                            return;
+                        }
+
+                        // 填入新答案
                         if (blank.classList.contains('filled')) return;
                         if (!selectedOption) {
                             this.showToast('请先选择一个答案');
@@ -276,55 +292,20 @@
                         }
 
                         const answer = selectedOption.dataset.answer;
-                        const optId = selectedOption.dataset.optId; // 获取选项唯一ID
+                        const optId = selectedOption.dataset.optId;
 
                         blank.textContent = answer;
                         blank.classList.add('filled');
                         blank.dataset.selected = answer;
-                        blank.dataset.filledOptId = optId; // 记录使用的选项ID
+                        blank.dataset.filledOptId = optId;
 
                         selectedOption.classList.add('used');
                         selectedOption.classList.remove('selected');
                         selectedOption = null;
                     });
                 });
-
-                // 绑定重置按钮事件
-                resetBtns.forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const itemIndex = btn.dataset.resetIndex;
-                        this.resetItem(itemIndex);
-                    });
-                });
             }
 
-            resetItem(itemIndex) {
-                // 找到该题目对应的所有空格
-                const blanks = this.container.querySelectorAll(`.sentence-blank[data-index="${itemIndex}"]`);
-
-                blanks.forEach(blank => {
-                    if (blank.classList.contains('filled')) {
-                        const filledOptId = blank.dataset.filledOptId;
-
-                        // 恢复选项池中对应的选项（使用唯一ID查找）
-                        const options = this.container.querySelectorAll('.option-tag');
-                        options.forEach(opt => {
-                            if (opt.dataset.optId === filledOptId) {
-                                opt.classList.remove('used');
-                            }
-                        });
-
-                        // 清空空格
-                        blank.textContent = '';
-                        blank.classList.remove('filled', 'correct', 'wrong');
-                        delete blank.dataset.selected;
-                        delete blank.dataset.filledOptId;
-                    }
-                });
-
-                this.showToast('已重置该题');
-            }
 
             // 导航按钮事件只绑定一次
             bindNavEvents() {
@@ -366,8 +347,7 @@
                 // this.correctCount += correct; // 移除原先按填空计数的逻辑
 
                 if (correct === total) {
-                    this.correctCount++; // 按题组计数：全对才+1
-                    this.showCorrectFeedback();
+                    this.showCorrectFeedback(); // showCorrectFeedback()会自动增加correctCount
                     // 记录答对的题目组
                     window.storage.markQuestionCorrect(this.moduleId, this.currentGroupIndex);
 

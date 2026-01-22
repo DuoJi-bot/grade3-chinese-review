@@ -214,7 +214,7 @@
                             `).join('')}
                         </div>
 
-                        <p class="hint-text">先点击下方的字，再点击上方的空格填入</p>
+                        <p class="hint-text">先点击下方的字，再点击上方的空格填入。点击已填的字可撤回</p>
                     </div>
                 `;
 
@@ -238,6 +238,23 @@
 
                 blanks.forEach(blank => {
                     blank.addEventListener('click', () => {
+                        // 如果已填入，点击可撤回
+                        if (blank.classList.contains('filled') && !blank.classList.contains('correct') && !blank.classList.contains('wrong')) {
+                            const charValue = blank.dataset.selected;
+                            // 恢复选字池中的字
+                            poolChars.forEach(c => {
+                                if (c.dataset.char === charValue && c.classList.contains('used')) {
+                                    c.classList.remove('used');
+                                }
+                            });
+                            // 清空空格
+                            blank.textContent = '?';
+                            blank.classList.remove('filled');
+                            delete blank.dataset.selected;
+                            return;
+                        }
+
+                        // 填入新字
                         if (blank.classList.contains('filled')) return;
                         if (!this.selectedChar) {
                             this.showToast('请先选择一个字');
@@ -281,7 +298,7 @@
                 this.correctCount = correct;
 
                 if (correct === blanks.length) {
-                    this.showCorrectFeedback();
+                    this.showCorrectFeedbackOnly();
                     // 记录答对的题目（这个板块是一个整体，记录所有词语）
                     this.section.words.forEach((w, i) => {
                         window.storage.markQuestionCorrect(this.moduleId, w.word);

@@ -493,7 +493,7 @@
                         this.speak(`${word1}，${word2}`);
 
                         if (this.matchedPairs === this.currentPairsCount) {
-                            this.showCorrectFeedback();
+                            this.showCorrectFeedbackOnly(); // 仅视觉反馈，correctCount在单元完成时单独处理
                             // this.correctCount += this.currentPairsCount; // 移除按配对计数
 
                             // 如果不是重测模式，保存进度

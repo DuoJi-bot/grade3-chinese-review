@@ -9,6 +9,7 @@ class QuizBase {
         this.questions = [];
         this.currentIndex = 0;
         this.correctCount = 0;
+        this.wrongCount = 0;
         this.answered = new Set();
         this.startTime = Date.now();
 
@@ -123,24 +124,33 @@ class QuizBase {
     }
 
     /**
-     * 显示正确反馈
+     * 显示正确反馈（仅视觉效果，不修改计数器）
+     */
+    showCorrectFeedbackOnly() {
+        this.showFeedback('✓', 'correct');
+    }
+
+    /**
+     * 显示错误反馈（仅视觉效果，不修改计数器）
+     */
+    showWrongFeedbackOnly() {
+        this.showFeedback('✗', 'wrong');
+    }
+
+    /**
+     * 显示正确反馈并增加计数
      */
     showCorrectFeedback() {
         this.correctCount++;
         this.showFeedback('✓', 'correct');
-
-        // 播放正确音效（可选）
-        // this.playSound('correct');
     }
 
     /**
-     * 显示错误反馈
+     * 显示错误反馈并增加计数
      */
     showWrongFeedback() {
+        this.wrongCount++;
         this.showFeedback('✗', 'wrong');
-
-        // 播放错误音效（可选）
-        // this.playSound('wrong');
     }
 
     /**
@@ -162,7 +172,9 @@ class QuizBase {
      */
     showComplete() {
         const totalTime = Math.round((Date.now() - this.startTime) / 1000);
-        const accuracy = Math.round((this.correctCount / this.questions.length) * 100);
+        // 根据对勾和叉号的实际次数计算
+        const totalAnswered = this.correctCount + this.wrongCount;
+        const accuracy = totalAnswered > 0 ? Math.round((this.correctCount / totalAnswered) * 100) : 0;
 
         // 隐藏导航按钮
         const navButtons = document.querySelector('.nav-buttons');
@@ -172,16 +184,21 @@ class QuizBase {
 
         // 保存进度
         window.storage.markCompleted(this.moduleId);
-        window.storage.updateStats(this.questions.length, this.correctCount, totalTime);
+        window.storage.updateStats(totalAnswered, this.correctCount, totalTime);
+
+        // 根据正确率决定图标样式和交互
+        const isPerfect = accuracy === 100;
+        const iconStyle = isPerfect ? 'cursor: pointer;' : 'cursor: default; opacity: 0.5;';
+        const iconTitle = isPerfect ? '点击庆祝！🎊' : '全部答对才能庆祝哦~';
 
         this.container.innerHTML = `
             <div class="complete-screen fade-in">
-                <div class="complete-icon">🎉</div>
+                <div class="complete-icon" id="celebrateIcon" style="${iconStyle}" title="${iconTitle}">🎉</div>
                 <h2 class="complete-title">练习完成！</h2>
                 <div class="complete-stats">
                     <div class="stat-row">
                         <span class="stat-label">答题数量</span>
-                        <span class="stat-value">${this.questions.length} 题</span>
+                        <span class="stat-value">${totalAnswered} 题</span>
                     </div>
                     <div class="stat-row">
                         <span class="stat-label">正确数量</span>
@@ -210,6 +227,18 @@ class QuizBase {
         const backToHomeBtn = document.getElementById('backToHomeBtn');
         if (backToHomeBtn) {
             backToHomeBtn.addEventListener('click', () => this.goBack());
+        }
+
+        // 只有正确率100%时才绑定庆祝图标点击事件
+        if (isPerfect) {
+            const celebrateIcon = document.getElementById('celebrateIcon');
+            if (celebrateIcon) {
+                celebrateIcon.addEventListener('click', () => {
+                    this.triggerConfetti();
+                });
+            }
+            // 自动触发一次五彩纸屑特效
+            setTimeout(() => this.triggerConfetti(), 300);
         }
     }
 
@@ -378,6 +407,164 @@ class QuizBase {
         if (backBtn) {
             backBtn.addEventListener('click', this.goBack);
         }
+    }
+
+    /**
+     * 触发五彩纸屑特效
+     * 模拟🎉抛洒效果：从一个点向外爆炸扩散
+     */
+    triggerConfetti() {
+        // 随机起点位置
+        const originX = window.innerWidth * (0.2 + Math.random() * 0.6);
+        const originY = window.innerHeight * (0.3 + Math.random() * 0.3);
+
+        // 彩色配置
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#fd79a8', '#a29bfe', '#00b894', '#fdcb6e', '#e17055', '#74b9ff', '#55efc4'];
+
+        // 创建纸屑容器
+        const container = document.createElement('div');
+        container.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        `;
+        document.body.appendChild(container);
+
+        // 生成纸屑和彩带（使用物理模拟）
+        const pieceCount = 80;  // 纸屑数量
+        const ribbonCount = 20; // 彩带数量
+        const pieces = [];
+        const gravity = 0.15;
+        const friction = 0.99;
+
+        // 生成纸屑
+        for (let i = 0; i < pieceCount; i++) {
+            const piece = document.createElement('div');
+
+            // 随机形状：圆形、方形、长条
+            const shapeType = Math.floor(Math.random() * 3);
+            const size = 6 + Math.random() * 10;
+            const color = colors[Math.floor(Math.random() * colors.length)];
+
+            piece.style.position = 'absolute';
+            piece.style.backgroundColor = color;
+            piece.style.left = originX + 'px';
+            piece.style.top = originY + 'px';
+
+            if (shapeType === 0) {
+                piece.style.width = size + 'px';
+                piece.style.height = size + 'px';
+                piece.style.borderRadius = '50%';
+            } else if (shapeType === 1) {
+                piece.style.width = size + 'px';
+                piece.style.height = size + 'px';
+            } else {
+                piece.style.width = (size * 0.4) + 'px';
+                piece.style.height = (size * 1.5) + 'px';
+            }
+
+            container.appendChild(piece);
+
+            const angle = (-30 + Math.random() * 240) * (Math.PI / 180);
+            const velocity = 8 + Math.random() * 15;
+
+            pieces.push({
+                element: piece,
+                x: originX,
+                y: originY,
+                vx: Math.cos(angle) * velocity,
+                vy: Math.sin(angle) * velocity - 5,
+                rotation: Math.random() * 360,
+                rotationSpeed: (Math.random() - 0.5) * 15,
+                opacity: 1,
+                isRibbon: false
+            });
+        }
+
+        // 生成彩带
+        for (let i = 0; i < ribbonCount; i++) {
+            const ribbon = document.createElement('div');
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const width = 3 + Math.random() * 3;
+            const height = 25 + Math.random() * 35;
+
+            ribbon.style.cssText = `
+                position: absolute;
+                width: ${width}px;
+                height: ${height}px;
+                background: linear-gradient(180deg, ${color} 0%, ${color}88 50%, ${color}44 100%);
+                border-radius: ${width}px;
+                left: ${originX}px;
+                top: ${originY}px;
+                transform-origin: center top;
+            `;
+
+            container.appendChild(ribbon);
+
+            const angle = (-30 + Math.random() * 240) * (Math.PI / 180);
+            const velocity = 6 + Math.random() * 12;
+
+            pieces.push({
+                element: ribbon,
+                x: originX,
+                y: originY,
+                vx: Math.cos(angle) * velocity,
+                vy: Math.sin(angle) * velocity - 4,
+                rotation: Math.random() * 360,
+                rotationSpeed: (Math.random() - 0.5) * 8,
+                opacity: 1,
+                isRibbon: true,
+                wavePhase: Math.random() * Math.PI * 2,
+                waveSpeed: 0.15 + Math.random() * 0.1
+            });
+        }
+
+        // 动画循环
+        let frameCount = 0;
+        const maxFrames = 180; // 约3秒
+
+        const animate = () => {
+            frameCount++;
+
+            pieces.forEach(p => {
+                // 应用物理
+                p.vy += gravity; // 重力
+                p.vx *= friction;
+                p.vy *= friction;
+
+                p.x += p.vx;
+                p.y += p.vy;
+                p.rotation += p.rotationSpeed;
+
+                // 渐渐消失
+                if (frameCount > maxFrames * 0.6) {
+                    p.opacity -= 0.02;
+                }
+
+                // 更新DOM - 彩带有额外的波浪效果
+                if (p.isRibbon) {
+                    p.wavePhase += p.waveSpeed;
+                    const wave = Math.sin(p.wavePhase) * 20;
+                    p.element.style.transform = `translate(${p.x - originX}px, ${p.y - originY}px) rotate(${p.rotation}deg) skewX(${wave}deg)`;
+                } else {
+                    p.element.style.transform = `translate(${p.x - originX}px, ${p.y - originY}px) rotate(${p.rotation}deg)`;
+                }
+                p.element.style.opacity = Math.max(0, p.opacity);
+            });
+
+            if (frameCount < maxFrames) {
+                requestAnimationFrame(animate);
+            } else {
+                container.remove();
+            }
+        };
+
+        requestAnimationFrame(animate);
     }
 }
 

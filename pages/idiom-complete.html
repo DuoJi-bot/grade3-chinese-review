@@ -168,7 +168,7 @@
                 poolHtml += '</div>';
 
                 // 提示
-                const hintHtml = '<p style="text-align: center; color: var(--text-muted); margin-top: 1rem; font-size: 0.875rem;">点击下方的字填入空格中</p>';
+                const hintHtml = '<p style="text-align: center; color: var(--text-muted); margin-top: 1rem; font-size: 0.875rem;">点击下方的字填入空格中，点击已填的字可撤回</p>';
 
                 this.container.innerHTML = pinyinHtml + idiomHtml + poolHtml + hintHtml;
 
@@ -186,6 +186,12 @@
                     item.addEventListener('click', () => this.onCharClick(item));
                 });
 
+                // 空格点击事件（用于撤回）
+                const blankItems = this.container.querySelectorAll('.idiom-char.blank, .idiom-char.filled');
+                blankItems.forEach(item => {
+                    item.addEventListener('click', () => this.onBlankClick(item));
+                });
+
                 // 导航按钮
                 document.getElementById('backBtn').addEventListener('click', () => this.goBack());
 
@@ -193,6 +199,38 @@
                 document.getElementById('speakBtn').addEventListener('click', () => {
                     this.speak(this.currentIdiom);
                 });
+            }
+
+            /**
+             * 点击已填入的字（撤回）
+             */
+            onBlankClick(blankEl) {
+                // 只有已填入的字才能撤回
+                if (!blankEl.classList.contains('filled')) return;
+                // 如果已经标记正确/错误，不允许撤回
+                if (blankEl.classList.contains('correct') || blankEl.classList.contains('wrong')) return;
+
+                const char = blankEl.textContent;
+                const blankIndex = parseInt(blankEl.dataset.index);
+
+                // 找到对应的选字元素并恢复
+                const charItems = this.container.querySelectorAll('.char-item');
+                charItems.forEach(item => {
+                    if (item.dataset.char === char && item.classList.contains('used')) {
+                        item.classList.remove('used');
+                    }
+                });
+
+                // 清空当前空格
+                blankEl.textContent = '';
+                blankEl.classList.remove('filled');
+                blankEl.classList.add('blank');
+
+                // 从已填充列表中移除
+                const charIndex = this.filledChars.lastIndexOf(char);
+                if (charIndex > -1) {
+                    this.filledChars.splice(charIndex, 1);
+                }
             }
 
             /**
@@ -208,9 +246,8 @@
                 if (blankIndex === undefined) return;
 
                 const blankEl = this.container.querySelector(`.idiom-char[data-index="${blankIndex}"]`);
-                const correctChar = blankEl.dataset.answer;
 
-                // 填入字符
+                // 填入字符（先不显示对错，等填完再检查）
                 blankEl.textContent = char;
                 blankEl.classList.remove('blank');
                 blankEl.classList.add('filled');
@@ -219,16 +256,7 @@
                 item.classList.add('used');
                 this.filledChars.push(char);
 
-                // 检查是否正确
-                const isCorrect = char === correctChar;
-
-                if (isCorrect) {
-                    blankEl.classList.add('correct');
-                } else {
-                    blankEl.classList.add('wrong');
-                }
-
-                // 检查是否完成
+                // 检查是否填完所有空格
                 if (this.filledChars.length === this.blanks.length) {
                     this.checkComplete();
                 }
@@ -238,14 +266,24 @@
              * 检查是否完成
              */
             checkComplete() {
-                const allCorrect = this.blanks.every((blankIndex, i) => {
+                // 先标记每个空格的对错
+                this.blanks.forEach((blankIndex) => {
+                    const blankEl = this.container.querySelector(`.idiom-char[data-index="${blankIndex}"]`);
+                    const isCorrect = blankEl.textContent === blankEl.dataset.answer;
+                    if (isCorrect) {
+                        blankEl.classList.add('correct');
+                    } else {
+                        blankEl.classList.add('wrong');
+                    }
+                });
+
+                const allCorrect = this.blanks.every((blankIndex) => {
                     const blankEl = this.container.querySelector(`.idiom-char[data-index="${blankIndex}"]`);
                     return blankEl.textContent === blankEl.dataset.answer;
                 });
 
                 if (allCorrect) {
                     this.showCorrectFeedback();
-                    this.correctCount++;
 
                     // 记录答对的题目
                     window.storage.markQuestionCorrect(this.moduleId, this.currentIdiom);

@@ -381,7 +381,6 @@
 
                         return `
                             <div class="poem-section" data-poem-index="${lessonIdx}">
-                                <button class="poem-reset-btn" data-reset-poem="${lessonIdx}">🔄 重置</button>
                                 <h3 class="poem-title">${poemTitle}</h3>
                                 ${poemParagraphs}
                                 ${poemOptionsHtml}
@@ -405,7 +404,6 @@
 
                         return `
                             <div class="paragraph-item" data-paragraph-index="${pIndex}">
-                                <button class="paragraph-reset-btn" data-reset-paragraph="${pIndex}">🔄 重置</button>
                                 <div class="paragraph-area">
                                     ${displayText}
                                 </div>
@@ -571,7 +569,6 @@
                     poemSections.forEach(section => {
                         const options = section.querySelectorAll('.option-tag');
                         const blanks = section.querySelectorAll('.paragraph-blank');
-                        const resetBtn = section.querySelector('.poem-reset-btn');
                         let selectedOption = null;
 
                         options.forEach(opt => {
@@ -585,6 +582,23 @@
 
                         blanks.forEach(blank => {
                             blank.addEventListener('click', () => {
+                                // 如果已填入且未检查，点击可撤回
+                                if (blank.classList.contains('filled') && !blank.classList.contains('correct') && !blank.classList.contains('wrong')) {
+                                    const filledValue = blank.dataset.selected;
+                                    // 恢复选项池中对应的选项
+                                    options.forEach(opt => {
+                                        if (opt.dataset.value === filledValue && opt.classList.contains('used')) {
+                                            opt.classList.remove('used');
+                                        }
+                                    });
+                                    // 清空空格
+                                    blank.textContent = '';
+                                    blank.classList.remove('filled');
+                                    delete blank.dataset.selected;
+                                    return;
+                                }
+
+                                // 填入新答案
                                 if (blank.classList.contains('filled')) return;
                                 if (!selectedOption) {
                                     this.showToast('请先选择一个答案');
@@ -601,21 +615,11 @@
                                 selectedOption = null;
                             });
                         });
-
-                        // 绑定古诗重置按钮事件
-                        if (resetBtn) {
-                            resetBtn.addEventListener('click', (e) => {
-                                e.stopPropagation();
-                                const poemIndex = resetBtn.dataset.resetPoem;
-                                this.resetPoem(poemIndex);
-                            });
-                        }
                     });
                 } else {
                     // 普通课文：统一的选项池和空格
                     const options = this.container.querySelectorAll('.option-tag');
                     const blanks = this.container.querySelectorAll('.paragraph-blank');
-                    const resetBtns = this.container.querySelectorAll('.paragraph-reset-btn');
 
                     options.forEach(opt => {
                         opt.addEventListener('click', () => {
@@ -628,6 +632,23 @@
 
                     blanks.forEach(blank => {
                         blank.addEventListener('click', () => {
+                            // 如果已填入且未检查，点击可撤回
+                            if (blank.classList.contains('filled') && !blank.classList.contains('correct') && !blank.classList.contains('wrong')) {
+                                const filledValue = blank.dataset.selected;
+                                // 恢复选项池中对应的选项
+                                options.forEach(opt => {
+                                    if (opt.dataset.value === filledValue && opt.classList.contains('used')) {
+                                        opt.classList.remove('used');
+                                    }
+                                });
+                                // 清空空格
+                                blank.textContent = '';
+                                blank.classList.remove('filled');
+                                delete blank.dataset.selected;
+                                return;
+                            }
+
+                            // 填入新答案
                             if (blank.classList.contains('filled')) return;
                             if (!this.selectedOption) {
                                 this.showToast('请先选择一个答案');
@@ -642,15 +663,6 @@
                             this.selectedOption.classList.add('used');
                             this.selectedOption.classList.remove('selected');
                             this.selectedOption = null;
-                        });
-                    });
-
-                    // 绑定重置按钮事件
-                    resetBtns.forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            const paragraphIndex = btn.dataset.resetParagraph;
-                            this.resetParagraph(paragraphIndex);
                         });
                     });
                 }
@@ -797,8 +809,7 @@
                 // this.correctCount += correct; // 移除原先按填空计数的逻辑
 
                 if (correct === blanks.length) {
-                    this.correctCount++; // 按课时计数：全对才+1
-                    this.showCorrectFeedback();
+                    this.showCorrectFeedback(); // showCorrectFeedback()会自动增加correctCount
                     // 记录答对的课文
                     const lesson = this.lessons[this.currentLessonIndex];
                     window.storage.markQuestionCorrect(this.moduleId, lesson.id);

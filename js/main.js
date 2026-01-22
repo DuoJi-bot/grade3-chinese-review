@@ -212,6 +212,7 @@ function createQuizCard(module) {
     const icon = document.createElement('div');
     icon.className = 'quiz-card-icon';
     icon.textContent = module.icon;
+    icon.dataset.icon = module.icon; // 用于CSS选择器匹配动画
 
     const title = document.createElement('h3');
     title.className = 'quiz-card-title';
@@ -255,6 +256,9 @@ function createQuizCard(module) {
         badge.className = 'quiz-card-badge';
         badge.textContent = '✓ 已完成';
         card.appendChild(badge);
+
+        // 完成100%时为图标添加动画效果
+        icon.classList.add('animated');
     }
 
     card.addEventListener('click', () => {
@@ -420,6 +424,16 @@ function refreshProgress() {
         } else {
             // 不可追踪模块（自由练习），检查storage状态
             shouldShowCompleted = window.storage.isCompleted(moduleId);
+        }
+
+        // 3. 更新图标动画状态
+        const iconEl = card.querySelector('.quiz-card-icon');
+        if (iconEl) {
+            if (shouldShowCompleted) {
+                iconEl.classList.add('animated');
+            } else {
+                iconEl.classList.remove('animated');
+            }
         }
 
         if (shouldShowCompleted) {

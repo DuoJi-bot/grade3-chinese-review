@@ -322,7 +322,7 @@
                             this.selectedLeft = null;
 
                             if (this.matchedCount === this.totalPairs) {
-                                this.showCorrectFeedback();
+                                this.showCorrectFeedbackOnly(); // 仅视觉反馈，correctCount在单元完成时单独处理
                                 // this.correctCount += this.totalPairs; // 移除按配对计数的逻辑
 
                                 // 将本批次的词条加入已考查列表

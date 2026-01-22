@@ -341,7 +341,7 @@
                 this.correctCount = correctCount;
 
                 if (correctCount === totalCount && totalCount === this.allWords.length) {
-                    this.showCorrectFeedback();
+                    this.showCorrectFeedbackOnly();
                     // 记录答对的题目（所有词语）
                     this.allWords.forEach(w => {
                         window.storage.markQuestionCorrect(this.moduleId, w.word);

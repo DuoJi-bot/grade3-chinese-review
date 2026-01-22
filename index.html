@@ -79,7 +79,7 @@
                 <p class="project-desc">
                     本项目是一个临时的实验项目，旨在验证“构建一套完整的复习资料快速转化为交互式应用”的可操作性。目的是寻找一套切实可行的方法，通过不断定义新的模块化题型和交互方式，将学生厚重而传统的纸质或电子版复习资料迅速自动转化为一套高度定制化的交互式学习页面，努力保证包含所有内容的同时，让知识更加生动。
                 </p>
-                <p class="project-note">新功能和Bug随时更新，感谢你关注此项目。</p>
+                <p class="project-note">新功能和Bug随时更新</p>
                 <div class="footer-divider"></div>
                 <p>🎓 认真复习，期末考试加油！</p>
                 <div class="version-info">Version 1.0.1 • Build 54f6456</div>
@@ -228,6 +228,357 @@
         .quiz-card-progress.complete {
             background: rgba(16, 185, 129, 0.15);
             color: var(--success-color);
+        }
+
+        /* ========================================
+           完成率100%时的图标动画
+           ======================================== */
+        .quiz-card-icon.animated {
+            display: inline-block;
+        }
+
+        /* 🧍 身体部位成语 - 扭动效果 */
+        .quiz-card-icon.animated[data-icon="🧍"] {
+            animation: icon-wiggle 2s ease-in-out infinite;
+        }
+
+        /* 🔢 数字成语 - 跳动效果 */
+        .quiz-card-icon.animated[data-icon="🔢"] {
+            animation: icon-bounce 1s ease-in-out infinite;
+        }
+
+        /* 🏃 动作词语 - 跑步效果 */
+        .quiz-card-icon.animated[data-icon="🏃"] {
+            animation: icon-run 0.5s ease-in-out infinite;
+        }
+
+        /* 🌸 四季词语 - 旋转绽放 */
+        .quiz-card-icon.animated[data-icon="🌸"] {
+            animation: icon-bloom 3s ease-in-out infinite;
+        }
+
+        /* 🤝 待人名言 - 握手效果 */
+        .quiz-card-icon.animated[data-icon="🤝"] {
+            animation: icon-shake-hands 1.5s ease-in-out infinite;
+        }
+
+        /* 💪 团结协作 - 力量效果 */
+        .quiz-card-icon.animated[data-icon="💪"] {
+            animation: icon-flex 1.2s ease-in-out infinite;
+        }
+
+        /* ⚡ 坚韧名句 - 闪电效果 */
+        .quiz-card-icon.animated[data-icon="⚡"] {
+            animation: icon-flash 1.5s ease-in-out infinite;
+        }
+
+        /* 👁️ 带目的字 - 眨眼效果 */
+        .quiz-card-icon.animated[data-icon="👁️"] {
+            animation: icon-blink 2s ease-in-out infinite;
+        }
+
+        /* 👤 人物品质 - 点头效果 */
+        .quiz-card-icon.animated[data-icon="👤"] {
+            animation: icon-nod 1.5s ease-in-out infinite;
+        }
+
+        /* 💡 课文道理 - 发光效果 */
+        .quiz-card-icon.animated[data-icon="💡"] {
+            animation: icon-glow 1.5s ease-in-out infinite;
+        }
+
+        /* 📚 课文知识点 - 翻书效果 */
+        .quiz-card-icon.animated[data-icon="📚"] {
+            animation: icon-flip-book 2s ease-in-out infinite;
+        }
+
+        /* 🎴 近反义词配对 - 翻牌效果 */
+        .quiz-card-icon.animated[data-icon="🎴"] {
+            animation: icon-card-flip 2s ease-in-out infinite;
+        }
+
+        /* 🔤 多音字辨析 - 变形效果 */
+        .quiz-card-icon.animated[data-icon="🔤"] {
+            animation: icon-morph 2s ease-in-out infinite;
+        }
+
+        /* 🔗 修饰词搭配 - 连接效果 */
+        .quiz-card-icon.animated[data-icon="🔗"] {
+            animation: icon-connect 1.5s ease-in-out infinite;
+        }
+
+        /* 🎵 词语范式朗读 - 音符跳动 */
+        .quiz-card-icon.animated[data-icon="🎵"] {
+            animation: icon-music 1s ease-in-out infinite;
+        }
+
+        /* 📜 古诗背诵 - 展开卷轴 */
+        .quiz-card-icon.animated[data-icon="📜"] {
+            animation: icon-scroll 3s ease-in-out infinite;
+        }
+
+        /* ✍️ 小练笔示例 - 书写效果 */
+        .quiz-card-icon.animated[data-icon="✍️"] {
+            animation: icon-write 1.5s ease-in-out infinite;
+        }
+
+        /* 💬 口语交际 - 说话效果 */
+        .quiz-card-icon.animated[data-icon="💬"] {
+            animation: icon-talk 1s ease-in-out infinite;
+        }
+
+        /* 动画定义 */
+        @keyframes icon-wiggle {
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            25% {
+                transform: rotate(-10deg);
+            }
+
+            75% {
+                transform: rotate(10deg);
+            }
+        }
+
+        @keyframes icon-bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        @keyframes icon-run {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            50% {
+                transform: translateX(5px);
+            }
+        }
+
+        @keyframes icon-bloom {
+
+            0%,
+            100% {
+                transform: scale(1) rotate(0deg);
+            }
+
+            50% {
+                transform: scale(1.15) rotate(180deg);
+            }
+        }
+
+        @keyframes icon-shake-hands {
+
+            0%,
+            100% {
+                transform: rotate(0deg);
+            }
+
+            25% {
+                transform: rotate(-8deg);
+            }
+
+            50% {
+                transform: rotate(0deg);
+            }
+
+            75% {
+                transform: rotate(8deg);
+            }
+        }
+
+        @keyframes icon-flex {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        @keyframes icon-flash {
+
+            0%,
+            100% {
+                opacity: 1;
+                filter: brightness(1);
+            }
+
+            50% {
+                opacity: 0.6;
+                filter: brightness(1.5);
+            }
+        }
+
+        @keyframes icon-blink {
+
+            0%,
+            45%,
+            55%,
+            100% {
+                transform: scaleY(1);
+            }
+
+            50% {
+                transform: scaleY(0.1);
+            }
+        }
+
+        @keyframes icon-nod {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-3px);
+            }
+        }
+
+        @keyframes icon-glow {
+
+            0%,
+            100% {
+                filter: brightness(1) drop-shadow(0 0 0 transparent);
+            }
+
+            50% {
+                filter: brightness(1.3) drop-shadow(0 0 8px rgba(255, 200, 0, 0.8));
+            }
+        }
+
+        @keyframes icon-flip-book {
+
+            0%,
+            100% {
+                transform: rotateY(0deg);
+            }
+
+            50% {
+                transform: rotateY(15deg);
+            }
+        }
+
+        @keyframes icon-card-flip {
+
+            0%,
+            100% {
+                transform: perspective(200px) rotateY(0deg);
+            }
+
+            50% {
+                transform: perspective(200px) rotateY(180deg);
+            }
+        }
+
+        @keyframes icon-morph {
+
+            0%,
+            100% {
+                transform: scale(1) skewX(0deg);
+            }
+
+            50% {
+                transform: scale(1.1) skewX(5deg);
+            }
+        }
+
+        @keyframes icon-connect {
+
+            0%,
+            100% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            25% {
+                transform: rotate(-15deg) scale(1.1);
+            }
+
+            75% {
+                transform: rotate(15deg) scale(1.1);
+            }
+        }
+
+        @keyframes icon-music {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-5px) rotate(-5deg);
+            }
+
+            75% {
+                transform: translateY(-5px) rotate(5deg);
+            }
+        }
+
+        @keyframes icon-scroll {
+
+            0%,
+            100% {
+                transform: scaleX(1);
+            }
+
+            50% {
+                transform: scaleX(1.1);
+            }
+        }
+
+        @keyframes icon-write {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            25% {
+                transform: translate(2px, -2px) rotate(-5deg);
+            }
+
+            50% {
+                transform: translate(4px, 0) rotate(0deg);
+            }
+
+            75% {
+                transform: translate(2px, 2px) rotate(5deg);
+            }
+        }
+
+        @keyframes icon-talk {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            25%,
+            75% {
+                transform: scale(1.1);
+            }
+
+            50% {
+                transform: scale(0.95);
+            }
         }
     </style>
 
