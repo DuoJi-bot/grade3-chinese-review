@@ -49,6 +49,7 @@
             cursor: pointer;
             transition: all var(--transition-fast);
             white-space: nowrap;
+            position: relative;
         }
 
         .unit-btn:hover,
@@ -56,6 +57,41 @@
             border-color: var(--primary-color);
             background: var(--primary-color);
             color: white;
+        }
+
+        /* 已完成单元样式 - 绿色边框和对勾 */
+        .unit-btn.completed {
+            border-color: var(--success-color);
+        }
+
+        .unit-btn.completed::after {
+            content: '✓';
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 18px;
+            height: 18px;
+            background: var(--success-color);
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .unit-btn.completed:not(.active) {
+            background: var(--success-light);
+        }
+
+        .unit-btn.completed.active {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+        }
+
+        .unit-btn.completed.active::after {
+            background: var(--success-color);
         }
 
         .card-grid {
@@ -274,6 +310,15 @@
                 this.saveProgress();
             }
 
+            // 检查某个单元在当前类型下是否已完成
+            isUnitCompleted(unitIndex) {
+                const unit = this.units[unitIndex];
+                const pairs = this.matchType === 'synonyms' ? unit.synonyms : unit.antonyms;
+                const key = `unit${unitIndex}_${this.matchType}`;
+                const usedIndices = this.progressData[key] || [];
+                return usedIndices.length >= pairs.length;
+            }
+
             render() {
                 const unit = this.units[this.currentUnit];
                 const allPairs = this.matchType === 'synonyms' ? unit.synonyms : unit.antonyms;
@@ -367,9 +412,12 @@
                     </div>
 
                     <div class="unit-selector">
-                        ${this.units.map((u, i) => `
-                            <button class="unit-btn ${i === this.currentUnit ? 'active' : ''}" data-unit="${i}">${u.title}</button>
-                        `).join('')}
+                        ${this.units.map((u, i) => {
+                    const isCompleted = this.isUnitCompleted(i);
+                    const activeClass = i === this.currentUnit ? 'active' : '';
+                    const completedClass = isCompleted ? 'completed' : '';
+                    return `<button class="unit-btn ${activeClass} ${completedClass}" data-unit="${i}">${u.title}</button>`;
+                }).join('')}
                     </div>
 
                     <div class="game-info">
@@ -543,10 +591,18 @@
                                     this.render(); // 继续下一组
                                 }, 1000);
                             } else {
+                                // 本单元全部完成，自动跳到下一个单元
                                 setTimeout(() => {
-                                    this.showToast('🎉 本单元全部词语已考查完成！可继续重测或切换单元');
-                                    // 完成后继续渲染，进入重测模式
-                                    setTimeout(() => this.render(), 1500);
+                                    if (this.currentUnit < this.units.length - 1) {
+                                        this.currentUnit++;
+                                        this.showToast(`🎉 本单元已完成！自动进入${this.units[this.currentUnit].title}`);
+                                        setTimeout(() => this.render(), 1000);
+                                    } else {
+                                        // 已是最后一个单元，跳回第一个单元
+                                        this.currentUnit = 0;
+                                        this.showToast('🎉 所有单元已完成！已回到第一单元');
+                                        setTimeout(() => this.render(), 1000);
+                                    }
                                 }, 500);
                             }
                         }
